@@ -1,26 +1,184 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@font-face {
+  font-family: 'Roboto';
+  src: url('/Roboto-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme {
+  --color-brand-dark: #050505;
+  --color-brand-light: #1a1a1a;
+  --color-brand-accent: #EC392C;
+  --color-brand-accentHover: #FF4D3D;
+  --color-brand-border: rgba(236, 57, 44, 0.3);
+
+  --font-sans: 'Roboto', sans-serif;
+  --font-display: 'Roboto', sans-serif;
+
+  --shadow-neon: 0 0 10px rgba(236, 57, 44, 0.5), 0 0 20px rgba(236, 57, 44, 0.3);
+  --shadow-neon-intense: 0 0 15px rgba(236, 57, 44, 0.8), 0 0 30px rgba(236, 57, 44, 0.5);
+  --shadow-neon-white: 0 0 15px rgba(255, 255, 255, 0.3);
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-glow: pulse-glow 3s infinite ease-in-out;
+  --animate-shimmer: shimmer 2s infinite;
+  --animate-spin-slow: spin-slow 20s linear infinite;
+  --animate-spin-slow-reverse: spin-slow-reverse 20s linear infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ===== ALL KEYFRAMES (must be outside @theme) ===== */
+
+@keyframes float {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-15px) rotate(2deg);
+  }
+
+  100% {
+    transform: translateY(0px) rotate(0deg);
   }
 }
 
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(300%) skewX(-20deg);
+  }
+}
+
+@keyframes spin-slow {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-slow-reverse {
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+
+/* 3D orbit: icons rotate on a tilted elliptical plane */
+@keyframes orbit-3d {
+  0% {
+    transform: rotateX(65deg) rotateZ(0deg);
+  }
+
+  100% {
+    transform: rotateX(65deg) rotateZ(360deg);
+  }
+}
+
+/* Planet surface scrolling - simulates 3D globe rotation */
+@keyframes planet-surface-scroll {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+/* ===== GLOBAL STYLES ===== */
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #050505;
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+/* Animation classes - outside @layer to prevent tree-shaking */
+.orbit-rotate {
+  transform-style: preserve-3d;
+  animation: spin-slow 14s linear infinite;
+}
+
+.planet-surface {
+  background-size: 200% 100%;
+  animation: planet-surface-scroll 20s linear infinite;
+}
+
+@layer utilities {
+  .floating {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .floating-delayed {
+    animation: float 6s ease-in-out infinite;
+    animation-delay: 2s;
+  }
+
+  .glow-dot {
+    animation: pulse-glow 3s infinite ease-in-out;
+  }
+
+  .glass-panel {
+    background: rgba(26, 26, 26, 0.6);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-header {
+    background: rgba(5, 5, 5, 0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .text-gradient {
+    background: linear-gradient(to right, #ffffff, #EC392C);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .counter-number {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #EC392C;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FF4D3D;
 }
