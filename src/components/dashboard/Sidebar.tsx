@@ -6,7 +6,7 @@ import { usePreferences } from '@/contexts/PreferencesContext';
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const { t } = usePreferences();
+    const { t, theme } = usePreferences();
 
     const mainNav = [
         { name: t('sidebar.overview'), href: '/dashboard', icon: 'fa-table-columns' },
@@ -32,7 +32,7 @@ export default function Sidebar() {
             <div className="mb-10 px-2 flex items-center gap-2">
                 <Link href="/dashboard" className="flex items-center gap-2">
                     <img
-                        src="/logo spacelike.png"
+                        src={theme === 'dark' ? '/logo spacelike.png' : '/logo spacelike light.png'}
                         alt="SpaceLike Logo"
                         className="h-10 w-auto object-contain drop-shadow-[0_0_10px_rgba(236,57,44,0.3)]"
                     />

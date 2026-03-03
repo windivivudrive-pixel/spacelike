@@ -10,16 +10,28 @@ interface LoginModalProps {
 }
 
 export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
+    const [mounted, setMounted] = useState(false);
+    const [isRegisterMode, setIsRegisterMode] = useState(false);
+
+    // Form States
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [mounted, setMounted] = useState(false);
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [username, setUsername] = useState('');
+    const [phone, setPhone] = useState('');
+
+    // UI States
     const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
+    const [loadingAuth, setLoadingAuth] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+    const [successMsg, setSuccessMsg] = useState('');
 
     const supabase = createClient();
 
     const handleOAuthLogin = async (provider: 'google' | 'facebook') => {
         try {
             setLoadingProvider(provider);
+            setErrorMsg('');
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: provider,
                 options: {
@@ -27,11 +39,117 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 }
             });
             if (error) throw error;
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error logging in:', error);
-            alert('Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.');
+            setErrorMsg(error.message || 'Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.');
             setLoadingProvider(null);
         }
+    };
+
+    const handleAuthSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setErrorMsg('');
+        setSuccessMsg('');
+
+        if (isRegisterMode) {
+            // Validate Registration
+            if (!email || !password || !confirmPassword || !username || !phone) {
+                setErrorMsg('Vui lòng điền đầy đủ các trường.');
+                return;
+            }
+
+            // Regex for Email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                setErrorMsg('Định dạng Email không hợp lệ.');
+                return;
+            }
+
+            // Regex for Vietnamese Phone Number
+            const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
+            if (!phoneRegex.test(phone)) {
+                setErrorMsg('Số điện thoại không hợp lệ (Bắt đầu bằng 03,05,07,08,09 và có 10 số).');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                setErrorMsg('Mật khẩu nhập lại không khớp.');
+                return;
+            }
+            if (password.length < 6) {
+                setErrorMsg('Mật khẩu phải có ít nhất 6 ký tự.');
+                return;
+            }
+
+            setLoadingAuth(true);
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            username: username,
+                            phone_number: phone,
+                            full_name: username // default full_name to username
+                        }
+                    }
+                });
+
+                if (error) throw error;
+
+                if (data.user?.identities?.length === 0) {
+                    setErrorMsg('Email này đã được đăng ký.');
+                    setLoadingAuth(false);
+                    return;
+                }
+
+                // Redirect directly to dashboard without waiting for email verification
+                window.location.href = '/dashboard';
+            } catch (error: any) {
+                console.error('Registration error:', error);
+                setErrorMsg(error.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+            } finally {
+                setLoadingAuth(false);
+            }
+        } else {
+            // Handle Login
+            if (!email || !password) {
+                setErrorMsg('Vui lòng nhập Email và Mật khẩu.');
+                return;
+            }
+
+            setLoadingAuth(true);
+            try {
+                const { error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                });
+                if (error) throw error;
+
+                // Successful login will naturally re-render layout based on session state and probably close modal/reload page
+                window.location.href = '/dashboard';
+            } catch (error: any) {
+                console.error('Login error:', error);
+                setErrorMsg('Thông tin đăng nhập không chính xác.');
+            } finally {
+                setLoadingAuth(false);
+            }
+        }
+    };
+
+    const resetForm = () => {
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        setUsername('');
+        setPhone('');
+        setErrorMsg('');
+        setSuccessMsg('');
+    };
+
+    const toggleMode = () => {
+        setIsRegisterMode(!isRegisterMode);
+        resetForm();
     };
 
     useEffect(() => {
@@ -42,6 +160,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
+            resetForm(); // reset form when opening
         } else {
             document.body.style.overflow = 'unset';
         }
@@ -61,7 +180,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             ></div>
 
             {/* Modal Content */}
-            <div className="relative w-full max-w-md bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_50px_rgba(236,57,44,0.15)] transform transition-transform duration-300 scale-100 opacity-100 animate-in fade-in zoom-in-95">
+            <div className={`relative w-full ${isRegisterMode ? 'max-w-lg' : 'max-w-md'} bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-[0_0_50px_rgba(236,57,44,0.15)] transform transition-all duration-300 scale-100 opacity-100 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto custom-scrollbar`}>
 
                 {/* Close Button */}
                 <button
@@ -74,49 +193,107 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <div className="inline-flex justify-center items-center w-12 h-12 rounded-xl bg-brand-accent/10 border border-brand-accent/30 mb-4 shadow-neon">
-                        <i className="fa-solid fa-user text-brand-accent text-xl"></i>
+                        <i className={`fa-solid ${isRegisterMode ? 'fa-user-plus' : 'fa-user'} text-brand-accent text-xl`}></i>
                     </div>
-                    <h2 className="text-2xl font-display font-bold text-white tracking-wide">Đăng Nhập</h2>
-                    <p className="text-sm text-gray-400 mt-2">Truy cập vào hệ thống SMM Panel của bạn</p>
+                    <h2 className="text-2xl font-display font-bold text-white tracking-wide">
+                        {isRegisterMode ? 'Đăng Ký Tài Khoản' : 'Đăng Nhập'}
+                    </h2>
+                    <p className="text-sm text-gray-400 mt-2">
+                        {isRegisterMode ? 'Tham gia hệ sinh thái SpaceLike ngay hôm nay' : 'Truy cập vào hệ thống SMM Panel của bạn'}
+                    </p>
                 </div>
 
-                {/* Social Logins */}
-                <div className="space-y-3 mb-6">
-                    <button
-                        onClick={() => handleOAuthLogin('google')}
-                        disabled={loadingProvider !== null}
-                        className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:bg-gray-200 disabled:cursor-not-allowed text-gray-900 font-semibold py-3 px-4 rounded-xl border border-gray-200 transition-colors duration-200"
-                    >
-                        {loadingProvider === 'google' ? (
-                            <i className="fa-solid fa-circle-notch fa-spin text-gray-500"></i>
-                        ) : (
-                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
-                        )}
-                        {loadingProvider === 'google' ? 'Đang kết nối...' : 'Đăng nhập bằng Google'}
-                    </button>
-                    <button
-                        onClick={() => handleOAuthLogin('facebook')}
-                        disabled={loadingProvider !== null}
-                        className="w-full flex items-center justify-center gap-3 bg-[#1877F2] hover:bg-[#166fe5] disabled:bg-[#1877F2]/70 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-md shadow-[#1877F2]/20"
-                    >
-                        {loadingProvider === 'facebook' ? (
-                            <i className="fa-solid fa-circle-notch fa-spin"></i>
-                        ) : (
-                            <i className="fa-brands fa-facebook-f text-lg"></i>
-                        )}
-                        {loadingProvider === 'facebook' ? 'Đang kết nối...' : 'Đăng nhập bằng Facebook'}
-                    </button>
-                </div>
+                {!isRegisterMode && (
+                    <>
+                        {/* Social Logins */}
+                        <div className="space-y-3 mb-6">
+                            <button
+                                onClick={() => handleOAuthLogin('google')}
+                                disabled={loadingProvider !== null || loadingAuth}
+                                className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 disabled:bg-gray-200 disabled:cursor-not-allowed text-gray-900 font-semibold py-3 px-4 rounded-xl border border-gray-200 transition-colors duration-200"
+                            >
+                                {loadingProvider === 'google' ? (
+                                    <i className="fa-solid fa-circle-notch fa-spin text-gray-500"></i>
+                                ) : (
+                                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+                                )}
+                                {loadingProvider === 'google' ? 'Đang kết nối...' : 'Đăng nhập bằng Google'}
+                            </button>
+                            <button
+                                onClick={() => handleOAuthLogin('facebook')}
+                                disabled={loadingProvider !== null || loadingAuth}
+                                className="w-full flex items-center justify-center gap-3 bg-[#1877F2] hover:bg-[#166fe5] disabled:bg-[#1877F2]/70 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-md shadow-[#1877F2]/20"
+                            >
+                                {loadingProvider === 'facebook' ? (
+                                    <i className="fa-solid fa-circle-notch fa-spin"></i>
+                                ) : (
+                                    <i className="fa-brands fa-facebook-f text-lg"></i>
+                                )}
+                                {loadingProvider === 'facebook' ? 'Đang kết nối...' : 'Đăng nhập bằng Facebook'}
+                            </button>
+                        </div>
 
-                {/* Divider */}
-                <div className="relative flex items-center py-2 mb-6">
-                    <div className="flex-grow border-t border-white/10"></div>
-                    <span className="flex-shrink-0 mx-4 text-xs text-gray-500 uppercase tracking-wider font-medium">hoặc email</span>
-                    <div className="flex-grow border-t border-white/10"></div>
-                </div>
+                        {/* Divider */}
+                        <div className="relative flex items-center py-2 mb-6">
+                            <div className="flex-grow border-t border-white/10"></div>
+                            <span className="flex-shrink-0 mx-4 text-xs text-gray-500 uppercase tracking-wider font-medium">hoặc email</span>
+                            <div className="flex-grow border-t border-white/10"></div>
+                        </div>
+                    </>
+                )}
 
-                {/* Traditional Login Form */}
-                <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                {/* Messages */}
+                {errorMsg && (
+                    <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-sm flex items-start gap-2">
+                        <i className="fa-solid fa-circle-exclamation mt-0.5"></i>
+                        <span>{errorMsg}</span>
+                    </div>
+                )}
+                {successMsg && (
+                    <div className="mb-6 p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-500 text-sm flex items-start gap-2">
+                        <i className="fa-solid fa-circle-check mt-0.5"></i>
+                        <span>{successMsg}</span>
+                    </div>
+                )}
+
+                {/* Traditional Auth Form */}
+                <form className="space-y-4" onSubmit={handleAuthSubmit}>
+
+                    {isRegisterMode && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-gray-300">Tên hiển thị</label>
+                                <div className="relative text-white">
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                        <i className="fa-solid fa-user-tag text-gray-500"></i>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600"
+                                        placeholder="Username"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-gray-300">Số điện thoại</label>
+                                <div className="relative text-white">
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                        <i className="fa-solid fa-phone text-gray-500"></i>
+                                    </div>
+                                    <input
+                                        type="tel"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600"
+                                        placeholder="0912..."
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="space-y-1.5">
                         <label className="text-sm font-medium text-gray-300">Email</label>
                         <div className="relative text-white">
@@ -136,7 +313,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     <div className="space-y-1.5">
                         <div className="flex justify-between items-center">
                             <label className="text-sm font-medium text-gray-300">Mật khẩu</label>
-                            <a href="#" className="text-xs text-brand-accent hover:text-brand-accentHover transition-colors">Quên mật khẩu?</a>
+                            {!isRegisterMode && (
+                                <a href="#" className="text-xs text-brand-accent hover:text-brand-accentHover transition-colors">Quên mật khẩu?</a>
+                            )}
                         </div>
                         <div className="relative text-white">
                             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -152,16 +331,46 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                         </div>
                     </div>
 
-                    <button className="w-full bg-brand-accent hover:bg-brand-accentHover text-brand-dark font-bold font-display tracking-wider py-3.5 rounded-xl transition-all duration-200 mt-2 shadow-neon group">
-                        <span className="flex items-center justify-center gap-2">
-                            Đăng Nhập <i className="fa-solid fa-arrow-right-to-bracket group-hover:translate-x-1 transition-transform"></i>
-                        </span>
+                    {isRegisterMode && (
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-medium text-gray-300">Xác nhận Mật khẩu</label>
+                            <div className="relative text-white">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <i className="fa-solid fa-lock text-gray-500"></i>
+                                </div>
+                                <input
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    <button
+                        disabled={loadingAuth}
+                        className="w-full bg-brand-accent hover:bg-brand-accentHover disabled:bg-brand-accent/50 disabled:cursor-not-allowed text-brand-dark font-bold font-display tracking-wider py-3.5 rounded-xl transition-all duration-200 mt-2 shadow-neon group"
+                    >
+                        {loadingAuth ? (
+                            <i className="fa-solid fa-circle-notch fa-spin"></i>
+                        ) : (
+                            <span className="flex items-center justify-center gap-2">
+                                {isRegisterMode ? 'Đăng Ký' : 'Đăng Nhập'}
+                                <i className={`fa-solid ${isRegisterMode ? 'fa-user-plus' : 'fa-arrow-right-to-bracket'} group-hover:translate-x-1 transition-transform`}></i>
+                            </span>
+                        )}
                     </button>
                 </form>
 
                 {/* Footer Link */}
                 <div className="mt-8 text-center text-sm text-gray-400">
-                    Chưa có tài khoản? <a href="#" className="text-white font-semibold hover:text-brand-accent transition-colors">Đăng ký ngay</a>
+                    {isRegisterMode ? (
+                        <>Đã có tài khoản? <button onClick={toggleMode} className="text-white font-semibold hover:text-brand-accent transition-colors">Đăng nhập ngay</button></>
+                    ) : (
+                        <>Chưa có tài khoản? <button onClick={toggleMode} className="text-white font-semibold hover:text-brand-accent transition-colors">Đăng ký ngay</button></>
+                    )}
                 </div>
 
             </div>

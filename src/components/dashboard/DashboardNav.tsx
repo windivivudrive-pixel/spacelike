@@ -12,6 +12,7 @@ export default function DashboardNav() {
         { name: t('sidebar.overview'), href: '/dashboard', icon: 'fa-table-columns', exact: true },
         { name: t('sidebar.servicePricing'), href: '/dashboard/service/facebook', icon: 'fa-layer-group', isServiceNav: true },
         { name: t('sidebar.transactions'), href: '/dashboard/transactions', icon: 'fa-clock-rotate-left' },
+        { name: 'Blog', href: '/dashboard/blog', icon: 'fa-pen-nib' },
         { name: t('sidebar.addFunds'), href: '/dashboard/add-funds', icon: 'fa-credit-card', isHighlight: true },
     ];
 
@@ -49,7 +50,7 @@ export default function DashboardNav() {
                     } else if (isActive) {
                         baseClasses += " bg-brand-accent text-white shadow-[0_0_20px_rgba(236,57,44,0.3)]";
                     } else {
-                        baseClasses += " text-gray-400 hover:text-white hover:bg-white/5";
+                        baseClasses += " text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--table-hover)]";
                     }
 
                     return (
@@ -77,8 +78,8 @@ export default function DashboardNav() {
                                     key={item.id}
                                     href={item.href}
                                     className={`group flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border ${isActive
-                                        ? 'border-white/20 text-white shadow-lg'
-                                        : 'border-transparent text-gray-400 hover:text-white hover:bg-white/5 hover:border-white/10'
+                                        ? 'border-[var(--border-color-hover)] text-[var(--text-primary)] shadow-lg'
+                                        : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--table-hover)] hover:border-[var(--border-color)]'
                                         }`}
                                     style={isActive ? {
                                         background: `linear-gradient(135deg, ${item.color}22 0%, transparent 70%)`,

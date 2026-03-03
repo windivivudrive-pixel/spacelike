@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { usePreferences } from '@/contexts/PreferencesContext';
 
 const ICONS = [
     'fa-user-plus',
@@ -19,6 +20,7 @@ const SPEED = 0.0004; // radians per ms (~15s per full orbit)
 export default function OrbitIcons() {
     const containerRef = useRef<HTMLDivElement>(null);
     const animRef = useRef<number>(0);
+    const { theme } = usePreferences();
 
     useEffect(() => {
         let startTime: number | null = null;
@@ -70,10 +72,13 @@ export default function OrbitIcons() {
             {ICONS.map((icon, index) => (
                 <div
                     key={index}
-                    className="absolute w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-brand-accent/70 bg-[#111]/90 flex items-center justify-center shadow-[0_0_25px_rgba(236,57,44,0.4),0_4px_12px_rgba(0,0,0,0.8)] transition-opacity duration-300"
+                    className={`absolute w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-brand-accent/70 flex items-center justify-center transition-opacity duration-300 ${theme === 'dark'
+                            ? 'bg-[#111]/90 shadow-[0_0_25px_rgba(236,57,44,0.4),0_4px_12px_rgba(0,0,0,0.8)]'
+                            : 'bg-gradient-to-br from-orange-100 to-orange-200 shadow-[0_0_20px_rgba(236,57,44,0.25),0_4px_12px_rgba(236,57,44,0.15)]'
+                        }`}
                     style={{ marginLeft: '-24px', marginTop: '-24px' }}
                 >
-                    <i className={`fa-solid ${icon} text-white text-base md:text-lg`}></i>
+                    <i className={`fa-solid ${icon} text-base md:text-lg ${theme === 'dark' ? 'text-white' : 'text-brand-accent'}`}></i>
                 </div>
             ))}
         </div>

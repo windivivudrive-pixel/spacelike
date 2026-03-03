@@ -172,18 +172,18 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
                 {/* Top neon border gradient effect - Space Theme */}
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brand-accent to-transparent opacity-80"></div>
 
-                <div style={{ background: 'rgba(255, 255, 255, 0.06)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }} className="rounded-[calc(2rem-4px)] p-8 md:p-12">
+                <div style={{ background: 'var(--bg-glass-card)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }} className="rounded-[calc(2rem-4px)] p-8 md:p-12">
 
                     <div className="flex items-start gap-5 mb-10">
                         {/* Dynamic Platform Icon Color */}
-                        <div className="w-14 h-14 shrink-0 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-inner" style={{ boxShadow: `inset 0 0 20px ${profile.color}20` }}>
+                        <div className="w-14 h-14 shrink-0 rounded-2xl bg-[var(--service-item-bg)] border border-[var(--border-color)] flex items-center justify-center shadow-inner" style={{ boxShadow: `inset 0 0 20px ${profile.color}20` }}>
                             <i className={`fa-brands ${profile.icon} text-3xl`} style={{ color: profile.color, filter: `drop-shadow(0 0 10px ${profile.color})` }}></i>
                         </div>
                         <div>
-                            <h2 className="font-display text-3xl font-bold text-white tracking-wide">
+                            <h2 className="font-display text-3xl font-bold text-[var(--text-primary)] tracking-wide">
                                 {t('order.newOrder')}: {profile.name}
                             </h2>
-                            <p className="text-gray-400 mt-1">{t('order.fillDetails')}</p>
+                            <p className="text-[var(--text-secondary)] mt-1">{t('order.fillDetails')}</p>
                         </div>
                     </div>
 
@@ -204,18 +204,18 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
 
                         {/* Category Selection */}
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-300 tracking-wider uppercase block">
+                            <label className="text-sm font-semibold text-[var(--text-secondary)] tracking-wider uppercase block">
                                 <i className="fa-solid fa-folder-open mr-2 text-brand-accent/70"></i> Dịch vụ (Category)
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <i className="fa-solid fa-layer-group text-gray-400"></i>
+                                    <i className="fa-solid fa-layer-group text-[var(--text-muted)]"></i>
                                 </div>
                                 <select
                                     value={selectedCategory}
                                     onChange={(e) => handleCategoryChange(e.target.value)}
                                     disabled={loading || categories.length === 0}
-                                    className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl pl-12 pr-10 py-4 text-white appearance-none focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all cursor-pointer hover:bg-[#111] disabled:opacity-50"
+                                    className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl pl-12 pr-10 py-4 text-[var(--input-text)] appearance-none focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all cursor-pointer hover:bg-[var(--input-hover)] disabled:opacity-50"
                                 >
                                     {loading ? (
                                         <option>{t('order.loadingServices' as any)}</option>
@@ -235,7 +235,7 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
 
                         {/* Service List Selection (New Layout) */}
                         <div className="space-y-3 mt-4">
-                            <label className="text-sm font-semibold text-gray-300 tracking-wider uppercase block">
+                            <label className="text-sm font-semibold text-[var(--text-secondary)] tracking-wider uppercase block">
                                 <i className="fa-solid fa-server mr-2 text-brand-accent/70"></i> Gói dịch vụ chi tiết
                             </label>
 
@@ -259,17 +259,17 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
                                                 }}
                                             >
                                                 {/* Radio Circle */}
-                                                <div className={`shrink-0 flex items-center justify-center w-5 h-5 rounded-full border-2 transition-colors ${isSelected ? 'border-brand-accent' : 'border-white/20'}`}>
+                                                <div className={`shrink-0 flex items-center justify-center w-5 h-5 rounded-full border-2 transition-colors ${isSelected ? 'border-brand-accent' : 'border-[var(--radio-border)]'}`}>
                                                     {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-brand-accent shadow-[0_0_8px_rgba(236,57,44,0.6)]"></div>}
                                                 </div>
 
                                                 {/* ID Badge */}
-                                                <div className={`shrink-0 px-3 py-1.5 rounded-lg ${isSelected ? 'bg-brand-accent text-white' : 'bg-white/10 text-gray-400'} text-xs font-bold font-mono tracking-wider`}>
+                                                <div className={`shrink-0 px-3 py-1.5 rounded-lg ${isSelected ? 'bg-brand-accent text-white' : 'bg-[var(--service-item-bg)] text-[var(--service-item-muted)]'} text-xs font-bold font-mono tracking-wider`}>
                                                     {svc.provider_service_id}
                                                 </div>
 
                                                 {/* Name & Price */}
-                                                <div className={`flex-1 text-sm font-medium pr-4 ${isSelected ? 'text-white' : 'text-gray-300'}`}>
+                                                <div className={`flex-1 text-sm font-medium pr-4 ${isSelected ? 'text-[var(--text-primary)]' : 'text-[var(--service-item-text)]'}`}>
                                                     {svc.name}
                                                     <span className={`ml-2 font-mono whitespace-nowrap ${isSelected ? 'text-brand-accent' : 'text-gray-500'}`}>- {formatCurrency(svc.rate)}/1000</span>
                                                 </div>
@@ -290,7 +290,7 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
 
                         {/* Target Link */}
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-300 tracking-wider uppercase block">
+                            <label className="text-sm font-semibold text-[var(--text-secondary)] tracking-wider uppercase block">
                                 <i className="fa-solid fa-link mr-2 text-brand-accent/70"></i> {t('order.targetLink')}
                             </label>
                             <input
@@ -298,21 +298,21 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
                                 value={targetLink}
                                 onChange={(e) => setTargetLink(e.target.value)}
                                 placeholder={activeService?.example_link || `https://${profile.id}.com/tencuaban`}
-                                className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600"
+                                className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-4 py-4 text-[var(--input-text)] focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-[var(--input-placeholder)]"
                             />
                         </div>
 
                         {/* Reaction Type (for Facebook Post Like/Reaction) */}
                         {profile.id === 'facebook' && selectedCategory === 'Post Like / Reaction' && (
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-gray-300 tracking-wider uppercase block">
+                                <label className="text-sm font-semibold text-[var(--text-secondary)] tracking-wider uppercase block">
                                     <i className="fa-solid fa-thumbs-up mr-2 text-brand-accent/70"></i> Loại cảm xúc (Reaction Type)
                                 </label>
                                 <div className="relative">
                                     <select
                                         value={reactType}
                                         onChange={(e) => setReactType(e.target.value)}
-                                        className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-4 text-white appearance-none focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all cursor-pointer hover:bg-[#111]"
+                                        className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-4 py-4 text-[var(--input-text)] appearance-none focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all cursor-pointer hover:bg-[var(--input-hover)]"
                                     >
                                         <option value="LIKE">LIKE (Thích)</option>
                                         <option value="LOVE">LOVE (Yêu thích)</option>
@@ -332,7 +332,7 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
                         {/* Comment Content (for Post Comment) */}
                         {selectedCategory === 'Post Comment' && (
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-gray-300 tracking-wider uppercase block">
+                                <label className="text-sm font-semibold text-[var(--text-secondary)] tracking-wider uppercase block">
                                     <i className="fa-solid fa-comments mr-2 text-brand-accent/70"></i> Nội dung bình luận (Comments)
                                 </label>
                                 <textarea
@@ -340,15 +340,15 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
                                     onChange={(e) => setComment(e.target.value)}
                                     placeholder="Gõ bình luận ở đây... Mỗi dòng là 1 bình luận"
                                     rows={4}
-                                    className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600 resize-y"
+                                    className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-4 py-4 text-[var(--input-text)] focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-[var(--input-placeholder)] resize-y"
                                 ></textarea>
-                                <p className="text-xs text-gray-400 mt-1">Lưu ý: Mỗi dòng là 1 bình luận độc lập.</p>
+                                <p className="text-xs text-[var(--text-muted)] mt-1">Lưu ý: Mỗi dòng là 1 bình luận độc lập.</p>
                             </div>
                         )}
 
                         {/* Optional Note */}
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-300 tracking-wider uppercase block">
+                            <label className="text-sm font-semibold text-[var(--text-secondary)] tracking-wider uppercase block">
                                 <i className="fa-solid fa-note-sticky mr-2 text-brand-accent/70"></i> Ghi chú (Optional)
                             </label>
                             <input
@@ -356,7 +356,7 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
                                 value={note}
                                 onChange={(e) => setNote(e.target.value)}
                                 placeholder="Ghi chú cho đơn hàng này (không bắt buộc)"
-                                className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600"
+                                className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-4 py-4 text-[var(--input-text)] focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-[var(--input-placeholder)]"
                             />
                         </div>
 
@@ -364,10 +364,10 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                             {/* Quantity */}
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-gray-300 tracking-wider uppercase flex justify-between items-center">
+                                <label className="text-sm font-semibold text-[var(--text-secondary)] tracking-wider uppercase flex justify-between items-center">
                                     <span><i className="fa-solid fa-gauge-high mr-2 text-brand-accent/70"></i> {t('order.quantity')}</span>
                                     {activeService && (
-                                        <span className="text-[10px] text-gray-500 normal-case bg-white/5 px-2 py-1 rounded-md">
+                                        <span className="text-[10px] text-[var(--text-muted)] normal-case bg-[var(--service-item-bg)] px-2 py-1 rounded-md">
                                             Min: {activeService.min_quantity.toLocaleString()} - Max: {activeService.max_quantity.toLocaleString()}
                                         </span>
                                     )}
@@ -381,18 +381,18 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
                                         onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
                                         step="10"
                                         placeholder={`Gõ số lượng (${activeService?.min_quantity || ''} - ${activeService?.max_quantity || ''})`}
-                                        className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-4 text-white font-mono text-lg focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all text-center placeholder-gray-600/50"
+                                        className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-4 py-4 text-[var(--input-text)] font-mono text-lg focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all text-center placeholder-[var(--input-placeholder)]"
                                     />
                                 </div>
                             </div>
 
                             {/* Charge Total */}
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-gray-300 tracking-wider uppercase block">
+                                <label className="text-sm font-semibold text-[var(--text-secondary)] tracking-wider uppercase block">
                                     <i className="fa-solid fa-coins mr-2 text-brand-accent/70"></i> {t('order.totalCharge')}
                                 </label>
-                                <div className="w-full bg-[#050505] shadow-inner border border-brand-accent/30 rounded-xl px-6 py-4 flex justify-between items-center h-[62px]">
-                                    <i className="fa-solid fa-wallet text-gray-500"></i>
+                                <div className="w-full bg-[var(--total-bg)] shadow-inner border border-brand-accent/30 rounded-xl px-6 py-4 flex justify-between items-center h-[62px]">
+                                    <i className="fa-solid fa-wallet text-[var(--text-muted)]"></i>
                                     <span className="font-display text-2xl font-bold text-brand-accent tracking-wider">{formatCurrency(total)}</span>
                                 </div>
                             </div>

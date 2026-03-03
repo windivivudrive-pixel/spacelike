@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
+import { usePreferences } from '@/contexts/PreferencesContext';
 
 export default function ParticlesBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { theme } = usePreferences();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -15,6 +17,7 @@ export default function ParticlesBackground() {
     let height = 0;
     let particles: any[] = [];
     let nebulae: any[] = [];
+    let clusters: any[] = [];
     let animationFrameId: number;
 
     const initParticles = () => {
@@ -42,6 +45,56 @@ export default function ParticlesBackground() {
           ][Math.floor(Math.random() * 5)],
           drift: (Math.random() - 0.5) * 0.03,
         });
+      }
+
+      // --- Star Clusters (Galaxies) ---
+      const numClusters = 2; // 2 galaxies
+      if (clusters.length === 0) {
+        for (let i = 0; i < numClusters; i++) {
+          // Place one in bottom-left, one in bottom-right
+          const isLeft = i === 0;
+          const cx = isLeft ? width * 0.1 : width * 0.85;
+          const baseYOffset = Math.random() * 0.1;
+          const baseY = isLeft ? height * 0.8 : height * 0.55;
+          const cy = baseY + (height * baseYOffset); // Keep right one higher
+
+          const rDisk = 300 + Math.random() * 250;
+          const flatten = 0.2 + Math.random() * 0.15;
+          const rot = isLeft ? Math.PI / 6 : -Math.PI / 6; // Fixed symmetric tilt
+
+          const clusterStars = [];
+          for (let j = 0; j < 300; j++) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.pow(Math.random(), 1.5) * rDisk; // focus towards center
+            clusterStars.push({
+              x: Math.cos(angle) * dist,
+              y: Math.sin(angle) * dist,
+              r: Math.random() * 1.2,
+              alpha: 0.1 + Math.random() * 0.5
+            });
+          }
+
+          clusters.push({
+            x: cx,
+            y: cy,
+            baseYOffset,
+            radiusCore: 30 + Math.random() * 10,
+            radiusDisk: rDisk,
+            flatten,
+            rotation: rot,
+            driftX: (Math.random() - 0.5) * 0.02,
+            driftY: (Math.random() - 0.5) * 0.02,
+            stars: clusterStars
+          });
+        }
+      } else {
+        // Just update positions on resize
+        for (let i = 0; i < clusters.length; i++) {
+          const isLeft = i === 0;
+          clusters[i].x = isLeft ? width * 0.1 : width * 0.85;
+          const baseY = isLeft ? height * 0.8 : height * 0.55;
+          clusters[i].y = baseY + (height * clusters[i].baseYOffset);
+        }
       }
 
       // --- Stars in 3 depth layers ---
@@ -78,22 +131,36 @@ export default function ParticlesBackground() {
     const drawParticles = () => {
       timeOffset += 1;
 
-      // --- Paint deep space background gradient ---
+      // --- Paint background gradient based on theme ---
+      const isDark = theme === 'dark';
       const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
-      bgGrad.addColorStop(0, '#050510');
-      bgGrad.addColorStop(0.3, '#0a0812');
-      bgGrad.addColorStop(0.5, '#080610');
-      bgGrad.addColorStop(0.7, '#0c0815');
-      bgGrad.addColorStop(1, '#060408');
+      if (isDark) {
+        bgGrad.addColorStop(0, '#050510');
+        bgGrad.addColorStop(0.3, '#0a0812');
+        bgGrad.addColorStop(0.5, '#080610');
+        bgGrad.addColorStop(0.7, '#0c0815');
+        bgGrad.addColorStop(1, '#060408');
+      } else {
+        bgGrad.addColorStop(0, '#f0f2f5');
+        bgGrad.addColorStop(0.3, '#e8eaef');
+        bgGrad.addColorStop(0.5, '#eceef3');
+        bgGrad.addColorStop(0.7, '#e5e7ec');
+        bgGrad.addColorStop(1, '#f2f4f8');
+      }
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, width, height);
 
       // Subtle radial depth spots
-      const spots = [
+      const spots = isDark ? [
         { x: width * 0.8, y: height * 0.15, r: 350, color: 'rgba(60, 20, 80, 0.10)' },
         { x: width * 0.2, y: height * 0.5, r: 400, color: 'rgba(20, 30, 80, 0.09)' },
         { x: width * 0.6, y: height * 0.75, r: 300, color: 'rgba(80, 20, 40, 0.07)' },
         { x: width * 0.1, y: height * 0.9, r: 250, color: 'rgba(30, 50, 100, 0.08)' },
+      ] : [
+        { x: width * 0.8, y: height * 0.15, r: 350, color: 'rgba(200, 180, 230, 0.15)' },
+        { x: width * 0.2, y: height * 0.5, r: 400, color: 'rgba(180, 200, 240, 0.12)' },
+        { x: width * 0.6, y: height * 0.75, r: 300, color: 'rgba(230, 180, 200, 0.10)' },
+        { x: width * 0.1, y: height * 0.9, r: 250, color: 'rgba(180, 210, 240, 0.12)' },
       ];
       spots.forEach(s => {
         const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r);
@@ -132,6 +199,65 @@ export default function ParticlesBackground() {
         ctx.arc(q.x, q.y, q.innerR * 4 * quasarPulse, 0, Math.PI * 2);
         ctx.fill();
       });
+
+      // --- Draw Star Clusters (Galaxies) ---
+      if (isDark) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+
+        clusters.forEach(c => {
+          c.x += c.driftX;
+          c.y += c.driftY;
+          if (c.x < -c.radiusDisk) c.x = width + c.radiusDisk;
+          if (c.x > width + c.radiusDisk) c.x = -c.radiusDisk;
+          if (c.y < -c.radiusDisk) c.y = height + c.radiusDisk;
+          if (c.y > height + c.radiusDisk) c.y = -c.radiusDisk;
+
+          ctx.save();
+          ctx.translate(c.x, c.y);
+          ctx.rotate(c.rotation);
+
+          // Disk
+          ctx.scale(1, c.flatten);
+          const gDisk = ctx.createRadialGradient(0, 0, 0, 0, 0, c.radiusDisk);
+          gDisk.addColorStop(0, 'rgba(236, 57, 44, 0.45)'); // brand orange
+          gDisk.addColorStop(0.2, 'rgba(236, 57, 44, 0.2)');
+          gDisk.addColorStop(0.5, 'rgba(255, 120, 50, 0.08)');
+          gDisk.addColorStop(0.8, 'rgba(80, 40, 150, 0.03)'); // subtle purple fringe
+          gDisk.addColorStop(1, 'transparent');
+          ctx.fillStyle = gDisk;
+          ctx.beginPath();
+          ctx.arc(0, 0, c.radiusDisk, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Cluster Stars
+          ctx.fillStyle = 'rgba(255, 230, 200, 0.8)';
+          c.stars.forEach((star: any) => {
+            ctx.globalAlpha = star.alpha * (Math.sin(timeOffset * 0.05 + star.x) * 0.3 + 0.7);
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+            ctx.fill();
+          });
+          ctx.globalAlpha = 1.0;
+
+          // Core
+          ctx.scale(1, 1 / c.flatten); // reset Y scale
+          ctx.scale(1, c.flatten * 1.5);
+          const gCore = ctx.createRadialGradient(0, 0, 0, 0, 0, c.radiusCore);
+          gCore.addColorStop(0, 'rgba(255, 255, 255, 1)');
+          gCore.addColorStop(0.2, 'rgba(255, 200, 100, 0.8)');
+          gCore.addColorStop(0.5, 'rgba(236, 57, 44, 0.6)');
+          gCore.addColorStop(1, 'transparent');
+          ctx.fillStyle = gCore;
+          ctx.beginPath();
+          ctx.arc(0, 0, c.radiusCore, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.restore();
+        });
+
+        ctx.restore();
+      }
 
       // --- Draw nebula clouds ---
       nebulae.forEach((n) => {
@@ -175,10 +301,14 @@ export default function ParticlesBackground() {
             ctx.shadowBlur = 10 * alphaMod;
             ctx.shadowColor = '#EC392C';
           } else if (p.color === 'white') {
-            ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+            if (isDark) {
+              ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+            } else {
+              ctx.fillStyle = `rgba(100, 120, 160, ${alpha * 0.6})`;
+            }
             if (layer === 2) {
               ctx.shadowBlur = 3 * alphaMod;
-              ctx.shadowColor = 'rgba(255, 255, 255, 0.3)';
+              ctx.shadowColor = isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(100, 120, 160, 0.2)';
             } else {
               ctx.shadowBlur = 0;
               ctx.shadowColor = 'transparent';
@@ -207,7 +337,7 @@ export default function ParticlesBackground() {
       window.removeEventListener('resize', initParticles);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [theme]);
 
   return (
     <canvas

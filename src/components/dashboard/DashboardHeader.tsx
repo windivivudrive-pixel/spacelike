@@ -5,8 +5,8 @@ import { usePreferences } from '@/contexts/PreferencesContext';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
-export default function DashboardHeader({ userName, initialBalance, userId, userEmail }: { userName: string, initialBalance: number, userId?: string, userEmail?: string }) {
-    const { currency, setCurrency, language, setLanguage, formatCurrency } = usePreferences();
+export default function DashboardHeader({ userName, initialBalance, userId, userEmail, avatarUrl = '/avartar.png' }: { userName: string, initialBalance: number, userId?: string, userEmail?: string, avatarUrl?: string }) {
+    const { currency, setCurrency, language, setLanguage, formatCurrency, theme, toggleTheme } = usePreferences();
     const [currencyOpen, setCurrencyOpen] = useState(false);
     const [languageOpen, setLanguageOpen] = useState(false);
     const [avatarOpen, setAvatarOpen] = useState(false);
@@ -80,25 +80,25 @@ export default function DashboardHeader({ userName, initialBalance, userId, user
                 <div className="relative">
                     <button
                         onClick={() => { setCurrencyOpen(!currencyOpen); setLanguageOpen(false); setAvatarOpen(false); }}
-                        className="flex items-center gap-2 px-3 lg:px-4 py-2 lg:py-2.5 rounded-full border border-white/20 bg-black/40 hover:bg-white/5 transition-colors backdrop-blur-md"
+                        className="flex items-center gap-2 px-3 lg:px-4 py-2 lg:py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-glass-card)] hover:bg-[var(--table-hover)] transition-colors backdrop-blur-md"
                     >
                         {currency === 'VND' ? (
                             <img src="https://flagcdn.com/w40/vn.png" alt="VN" className="w-5 h-5 rounded-sm object-cover" />
                         ) : (
                             <img src="https://flagcdn.com/w40/us.png" alt="US" className="w-5 h-5 rounded-sm object-cover" />
                         )}
-                        <span className="font-bold text-white text-sm tracking-wide">{currency}</span>
+                        <span className="font-bold text-[var(--text-primary)] text-sm tracking-wide">{currency}</span>
                     </button>
 
                     {currencyOpen && (
-                        <div className="absolute top-full lg:left-0 right-0 mt-2 w-32 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
-                            <button onClick={() => { setCurrency('VND'); setCurrencyOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors">
+                        <div className="absolute top-full lg:left-0 right-0 mt-2 w-32 bg-[var(--dropdown-bg)] border border-[var(--border-color)] rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                            <button onClick={() => { setCurrency('VND'); setCurrencyOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--table-hover)] transition-colors">
                                 <img src="https://flagcdn.com/w40/vn.png" alt="VN" className="w-5 h-5 rounded-sm object-cover" />
-                                <span className="font-medium text-white text-sm">VND</span>
+                                <span className="font-medium text-[var(--text-primary)] text-sm">VND</span>
                             </button>
-                            <button onClick={() => { setCurrency('USD'); setCurrencyOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors">
+                            <button onClick={() => { setCurrency('USD'); setCurrencyOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--table-hover)] transition-colors">
                                 <img src="https://flagcdn.com/w40/us.png" alt="US" className="w-5 h-5 rounded-sm object-cover" />
-                                <span className="font-medium text-white text-sm">USD</span>
+                                <span className="font-medium text-[var(--text-primary)] text-sm">USD</span>
                             </button>
                         </div>
                     )}
@@ -117,22 +117,34 @@ export default function DashboardHeader({ userName, initialBalance, userId, user
                         )}
                     </button>
                     {languageOpen && (
-                        <div className="absolute top-full right-0 mt-2 w-32 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
-                            <button onClick={() => { setLanguage('VI'); setLanguageOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors">
+                        <div className="absolute top-full right-0 mt-2 w-32 bg-[var(--dropdown-bg)] border border-[var(--border-color)] rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                            <button onClick={() => { setLanguage('VI'); setLanguageOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--table-hover)] transition-colors">
                                 <img src="https://flagcdn.com/w40/vn.png" alt="VI" className="w-5 h-5 rounded-sm object-cover" />
-                                <span className="font-medium text-white text-sm">Việt Nam</span>
+                                <span className="font-medium text-[var(--text-primary)] text-sm">Việt Nam</span>
                             </button>
-                            <button onClick={() => { setLanguage('EN'); setLanguageOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors">
+                            <button onClick={() => { setLanguage('EN'); setLanguageOpen(false); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--table-hover)] transition-colors">
                                 <img src="https://flagcdn.com/w40/us.png" alt="EN" className="w-5 h-5 rounded-sm object-cover" />
-                                <span className="font-medium text-white text-sm">English</span>
+                                <span className="font-medium text-[var(--text-primary)] text-sm">English</span>
                             </button>
                         </div>
                     )}
                 </div>
+
+                {/* Theme Toggle */}
+                <button
+                    onClick={() => { toggleTheme(); setCurrencyOpen(false); setLanguageOpen(false); setAvatarOpen(false); }}
+                    className="relative w-10 h-10 rounded-full border border-[var(--border-color)] bg-[var(--bg-glass-card)] hover:border-brand-accent/50 transition-all duration-300 flex items-center justify-center group overflow-hidden"
+                    title={theme === 'dark' ? 'Chuyển sang Light Mode' : 'Chuyển sang Dark Mode'}
+                >
+                    {/* Sun Icon */}
+                    <i className={`fa-solid fa-sun text-amber-400 absolute transition-all duration-500 ${theme === 'light' ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 rotate-180 scale-50'}`}></i>
+                    {/* Moon Icon */}
+                    <i className={`fa-solid fa-moon text-blue-300 absolute transition-all duration-500 ${theme === 'dark' ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-180 scale-50'}`}></i>
+                </button>
             </div>
 
             {/* Avatar & User Details */}
-            <div className="relative flex items-center gap-3 ml-2 lg:ml-6 pl-2 lg:pl-6 sm:border-l border-white/10">
+            <div className="relative flex items-center gap-3 ml-2 lg:ml-6 pl-2 lg:pl-6 sm:border-l border-[var(--border-color)]">
                 <button
                     onClick={() => { setAvatarOpen(!avatarOpen); setCurrencyOpen(false); setLanguageOpen(false); }}
                     className="relative focus:outline-none group"
@@ -143,7 +155,7 @@ export default function DashboardHeader({ userName, initialBalance, userId, user
 
                     {/* The Avatar Image itself */}
                     <img
-                        src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4"
+                        src={avatarUrl}
                         alt="User Avatar"
                         className="relative w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover border-2 border-black bg-black transition-transform group-hover:scale-105"
                     />
@@ -153,7 +165,7 @@ export default function DashboardHeader({ userName, initialBalance, userId, user
                 </button>
 
                 <div className="hidden sm:block">
-                    <div className="font-display font-bold text-lg text-white leading-tight">
+                    <div className="font-display font-bold text-lg text-[var(--text-primary)] leading-tight">
                         {userName}
                         {providerBalance !== null && (
                             <span className="ml-2 text-xs bg-brand-accent/20 text-brand-accent px-2 py-0.5 rounded-full border border-brand-accent/40 normal-case align-middle" title="Provider Balance">
@@ -161,19 +173,19 @@ export default function DashboardHeader({ userName, initialBalance, userId, user
                             </span>
                         )}
                     </div>
-                    <div className="text-gray-400 font-medium text-sm">
+                    <div className="text-[var(--text-secondary)] font-medium text-sm">
                         {formatCurrency(balance)}
                     </div>
                 </div>
 
                 {/* Avatar Dropdown */}
                 {avatarOpen && (
-                    <div className="absolute top-full right-0 mt-4 w-48 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
-                        <div className="px-4 py-3 border-b border-white/5 sm:hidden">
-                            <p className="text-sm text-white font-medium truncate">{userName}</p>
-                            <p className="text-xs text-gray-400 truncate">{formatCurrency(balance)}</p>
+                    <div className="absolute top-full right-0 mt-4 w-48 bg-[var(--dropdown-bg)] border border-[var(--border-color)] rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                        <div className="px-4 py-3 border-b border-[var(--border-color)] sm:hidden">
+                            <p className="text-sm text-[var(--text-primary)] font-medium truncate">{userName}</p>
+                            <p className="text-xs text-[var(--text-secondary)] truncate">{formatCurrency(balance)}</p>
                         </div>
-                        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-white/5 hover:text-red-400 transition-colors">
+                        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-[var(--table-hover)] hover:text-red-400 transition-colors">
                             <i className="fa-solid fa-arrow-right-from-bracket"></i>
                             <span className="font-medium text-sm">Đăng Xuất</span>
                         </button>
