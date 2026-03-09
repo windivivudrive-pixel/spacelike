@@ -77,7 +77,7 @@ export default function DashboardHeader({ userName, initialBalance, userId, user
             {/* Action Buttons Group */}
             <div className="flex items-center gap-3">
                 {/* Currency Selector */}
-                <div className="relative">
+                <div className="relative hidden md:block">
                     <button
                         onClick={() => { setCurrencyOpen(!currencyOpen); setLanguageOpen(false); setAvatarOpen(false); }}
                         className="flex items-center gap-2 px-3 lg:px-4 py-2 lg:py-2.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-glass-card)] hover:bg-[var(--table-hover)] transition-colors backdrop-blur-md"
@@ -105,7 +105,7 @@ export default function DashboardHeader({ userName, initialBalance, userId, user
                 </div>
 
                 {/* Language Selector */}
-                <div className="relative">
+                <div className="relative hidden md:block">
                     <button
                         onClick={() => { setLanguageOpen(!languageOpen); setCurrencyOpen(false); setAvatarOpen(false); }}
                         className="w-11 h-7 rounded-sm bg-brand-accent/20 flex items-center justify-center hover:bg-brand-accent/30 transition-colors border border-brand-accent/40 shadow-[0_0_15px_rgba(236,57,44,0.15)] group overflow-hidden"
@@ -180,11 +180,57 @@ export default function DashboardHeader({ userName, initialBalance, userId, user
 
                 {/* Avatar Dropdown */}
                 {avatarOpen && (
-                    <div className="absolute top-full right-0 mt-4 w-48 bg-[var(--dropdown-bg)] border border-[var(--border-color)] rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                    <div className="absolute top-full right-0 mt-4 w-52 md:w-48 bg-[var(--dropdown-bg)] border border-[var(--border-color)] rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
                         <div className="px-4 py-3 border-b border-[var(--border-color)] sm:hidden">
                             <p className="text-sm text-[var(--text-primary)] font-medium truncate">{userName}</p>
                             <p className="text-xs text-[var(--text-secondary)] truncate">{formatCurrency(balance)}</p>
                         </div>
+
+                        {/* Mobile Language and Currency Selectors */}
+                        <div className="md:hidden border-b border-[var(--border-color)] py-2">
+                            {/* Mobile Currency Option */}
+                            <div className="px-4 py-2">
+                                <p className="text-[10px] text-[var(--text-secondary)] mb-2 uppercase tracking-wider font-semibold">Tiền tệ</p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => { setCurrency('VND'); setAvatarOpen(false); }}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-colors ${currency === 'VND' ? 'bg-brand-accent/20 border border-brand-accent/30 text-brand-accent' : 'bg-[var(--bg-glass-card)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                                    >
+                                        <img src="https://flagcdn.com/w40/vn.png" alt="VN" className="w-4 h-4 rounded-sm object-cover" />
+                                        <span className="font-bold text-xs">VND</span>
+                                    </button>
+                                    <button
+                                        onClick={() => { setCurrency('USD'); setAvatarOpen(false); }}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-colors ${currency === 'USD' ? 'bg-brand-accent/20 border border-brand-accent/30 text-brand-accent' : 'bg-[var(--bg-glass-card)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                                    >
+                                        <img src="https://flagcdn.com/w40/us.png" alt="US" className="w-4 h-4 rounded-sm object-cover" />
+                                        <span className="font-bold text-xs">USD</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Mobile Language Option */}
+                            <div className="px-4 py-2">
+                                <p className="text-[10px] text-[var(--text-secondary)] mb-2 uppercase tracking-wider font-semibold">Ngôn ngữ</p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => { setLanguage('VI'); setAvatarOpen(false); }}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-colors ${language === 'VI' ? 'bg-brand-accent/20 border border-brand-accent/30 text-brand-accent' : 'bg-[var(--bg-glass-card)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                                    >
+                                        <img src="https://flagcdn.com/w40/vn.png" alt="VI" className="w-4 h-4 rounded-sm object-cover" />
+                                        <span className="font-bold text-xs">VI</span>
+                                    </button>
+                                    <button
+                                        onClick={() => { setLanguage('EN'); setAvatarOpen(false); }}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-colors ${language === 'EN' ? 'bg-brand-accent/20 border border-brand-accent/30 text-brand-accent' : 'bg-[var(--bg-glass-card)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                                    >
+                                        <img src="https://flagcdn.com/w40/us.png" alt="EN" className="w-4 h-4 rounded-sm object-cover" />
+                                        <span className="font-bold text-xs">EN</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-[var(--table-hover)] hover:text-red-400 transition-colors">
                             <i className="fa-solid fa-arrow-right-from-bracket"></i>
                             <span className="font-medium text-sm">Đăng Xuất</span>
