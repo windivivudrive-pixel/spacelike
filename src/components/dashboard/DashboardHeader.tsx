@@ -144,24 +144,24 @@ export default function DashboardHeader({ userName, initialBalance, userId, user
             </div>
 
             {/* Avatar & User Details */}
-            <div className="relative flex items-center gap-3 ml-2 lg:ml-6 pl-2 lg:pl-6 sm:border-l border-[var(--border-color)]">
+            <div className="relative flex items-center gap-3 ml-2 lg:ml-4 sm:border-l border-[var(--border-color)] pl-2 lg:pl-4">
                 <button
                     onClick={() => { setAvatarOpen(!avatarOpen); setCurrencyOpen(false); setLanguageOpen(false); }}
-                    className="relative focus:outline-none group"
+                    className="relative focus:outline-none group p-1"
                 >
-                    {/* Glowing Cyan/Blue border like in the screenshot */}
-                    <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-[#00F2FE] to-[#2962FF] opacity-70 blur-sm group-hover:opacity-100 transition-opacity"></div>
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#00F2FE] to-[#2962FF] m-[1px]"></div>
+                    {/* Glowing Orange border */}
+                    <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-[#FFA500] to-[#FF4500] opacity-70 blur-sm group-hover:opacity-100 transition-opacity"></div>
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#FFA500] to-[#FF4500] m-[1px]"></div>
 
                     {/* The Avatar Image itself */}
                     <img
                         src={avatarUrl}
                         alt="User Avatar"
-                        className="relative w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover border-2 border-black bg-black transition-transform group-hover:scale-105"
+                        className="relative w-10 h-10 rounded-full object-cover border-2 border-black bg-black transition-transform group-hover:scale-105"
                     />
 
                     {/* Status Dot (Pink/Red like screenshot) */}
-                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-[#FF4B4B] border-2 border-black z-10 transition-transform group-hover:scale-110"></div>
+                    <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#FF4B4B] border-2 border-black z-10 transition-transform group-hover:scale-110"></div>
                 </button>
 
                 <div className="hidden sm:block">

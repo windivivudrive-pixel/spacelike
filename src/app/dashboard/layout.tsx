@@ -47,8 +47,8 @@ export default async function DashboardLayout({
                     <div className="max-w-7xl mx-auto px-4 md:px-8">
                         <div className="flex items-center justify-between h-16">
                             {/* Logo */}
-                            <a href="/dashboard" className="flex items-center gap-2 shrink-0">
-                                <ThemeLogo />
+                            <a href="/" className="flex items-center gap-3 shrink-0 group">
+                                <ThemeLogo className="h-10 w-auto object-contain drop-shadow-[0_0_10px_rgba(236,57,44,0.3)] group-hover:scale-105 transition-transform" />
                             </a>
 
                             {/* Right: User Info & Preferences */}

@@ -10,6 +10,7 @@ export default function OrderPanel({ selectedCategoryName }: { selectedCategoryN
     const [category, setCategory] = useState<string>('FACEBOOK');
     const [services, setServices] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [fetchError, setFetchError] = useState<string | null>(null);
     const supabase = createClient();
 
     useEffect(() => {
@@ -26,19 +27,40 @@ export default function OrderPanel({ selectedCategoryName }: { selectedCategoryN
 
     useEffect(() => {
         async function fetchServices() {
-            setLoading(true);
-            const { data } = await supabase
-                .from('services')
-                .select('*')
-                .eq('category', category)
-                .eq('is_active', true)
-                .order('rate', { ascending: true })
-                .limit(6);
+            // Danh sách các nền tảng chưa hỗ trợ (Mới thêm)
+            const comingSoonCategories = ['SHOPEE', 'GOOGLE MAP', 'X', 'LINKEDIN', 'SPOTIFY', 'GOOGLE_MAP'];
 
-            if (data) {
-                setServices(data);
+            if (comingSoonCategories.includes(category)) {
+                setServices([]);
+                setLoading(false);
+                return;
             }
-            setLoading(false);
+
+            setLoading(true);
+            setFetchError(null);
+            try {
+                const { data, error } = await supabase
+                    .from('services')
+                    .select('*')
+                    .eq('category', category)
+                    .eq('is_active', true)
+                    .order('rate', { ascending: true })
+                    .limit(6);
+
+                if (error) {
+                    console.error("Supabase Error:", error);
+                    setFetchError(error.message);
+                } else if (data) {
+                    setServices(data);
+                } else {
+                    setServices([]);
+                }
+            } catch (err: any) {
+                console.error("Exception in fetchServices:", err);
+                setFetchError(err.message || String(err));
+            } finally {
+                setLoading(false);
+            }
         }
         fetchServices();
     }, [category]);
@@ -64,13 +86,17 @@ export default function OrderPanel({ selectedCategoryName }: { selectedCategoryN
                 </div>
 
                 {/* Service Cards Grid */}
-                {loading ? (
+                {fetchError ? (
+                    <div className="text-center text-red-500 py-10">
+                        Lỗi hiển thị dịch vụ: {fetchError}
+                    </div>
+                ) : loading ? (
                     <div className="flex justify-center items-center py-20">
                         <i className="fa-solid fa-circle-notch fa-spin text-4xl text-brand-accent"></i>
                     </div>
                 ) : services.length === 0 ? (
                     <div className="text-center text-[var(--text-secondary)] py-10">
-                        Chưa có dịch vụ nào cho nền tảng này.
+                        Đang cập nhật dịch vụ. Coming Soon
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
