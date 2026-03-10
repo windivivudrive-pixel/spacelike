@@ -11,7 +11,7 @@ const platforms = [
     { id: 'telegram', name: 'Telegram', icon: 'fa-telegram', color: '#0088cc', hoverBg: '#0088cc' },
     { id: 'shopee', name: 'Shopee', image: '/shopee-icon.webp', color: '#EE4D2D', hoverBg: '#EE4D2D', isComingSoon: true },
     { id: 'google_map', name: 'Google Map', image: '/google map.png', color: '#34A853', hoverBg: '#34A853', isComingSoon: true },
-    { id: 'twitter', name: 'X', icon: 'fa-x-twitter', color: '#ffffff', hoverBg: '#1a1a1a', customBorder: '#ffffff', isComingSoon: true },
+    { id: 'twitter', name: 'X', image: '/x_logo.png', color: '#000000', hoverBg: '#000000', customBorder: '#ffffff', isComingSoon: true },
     { id: 'linkedin', name: 'LinkedIn', icon: 'fa-linkedin', color: '#0077b5', hoverBg: '#0077b5', isComingSoon: true },
     { id: 'spotify', name: 'Spotify', icon: 'fa-spotify', color: '#1DB954', hoverBg: '#1DB954', isComingSoon: true },
 ];
@@ -77,7 +77,7 @@ export default function ServicesSection({ onSelectCategory }: { onSelectCategory
                                 }}
                             >
                                 {p.image ? (
-                                    <img src={p.image} alt={p.name} className={`w-6 h-6 md:w-8 md:h-8 object-contain transition-all duration-300 ${!textWhite ? 'grayscale opacity-60' : (p.id === 'shopee' ? 'brightness-0 invert' : '')}`} />
+                                    <img src={p.image} alt={p.name} className={`w-6 h-6 md:w-8 md:h-8 object-contain transition-all duration-300 ${!textWhite ? 'grayscale opacity-60' : ''}`} />
                                 ) : (
                                     <i className={`fa-brands ${p.icon} text-2xl md:text-3xl transition-colors duration-300 ${textWhite ? 'text-white' : 'text-[var(--text-secondary)]'}`} style={!textWhite && theme === 'light' ? { color: p.color } : {}}></i>
                                 )}
