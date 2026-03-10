@@ -106,9 +106,9 @@ export default function Header() {
         <header className="fixed w-full top-0 z-50 glass-header py-4 transition-all duration-300">
             <div className="container mx-auto px-6 max-w-7xl flex justify-between items-center">
                 {/* Logo */}
-                <a href="#" className="flex items-center gap-3 group">
+                <Link href="/" className="flex items-center gap-3 group">
                     <ThemeLogo className="h-10 w-auto object-contain drop-shadow-[0_0_10px_rgba(236,57,44,0.3)] group-hover:scale-105 transition-transform" />
-                </a>
+                </Link>
 
                 {/* Desktop Menu */}
                 <nav className="hidden md:flex items-center gap-8 font-medium">

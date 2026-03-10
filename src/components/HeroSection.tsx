@@ -54,10 +54,10 @@ export default function HeroSection() {
 
                 {/* ---------- PLANET with 3D Orbit ---------- */}
                 {/* Scaled down uniformly to guarantee orbit paths + icons perfectly align */}
-                <div className="absolute top-[2%] sm:top-[5%] md:top-1/2 left-[10%] md:-left-36 transform -translate-x-[20%] md:translate-x-0 -translate-y-0 md:-translate-y-[100%] scale-[0.38] sm:scale-[0.55] md:scale-[0.80] w-[420px] h-[420px] flex items-center justify-center z-30 pointer-events-none origin-top-left md:origin-center">
+                <div className="absolute top-[2%] sm:top-[5%] md:top-1/2 left-[28%] sm:left-[45%] md:-left-36 transform -translate-x-1/4 sm:-translate-x-1/3 md:translate-x-0 -translate-y-0 md:-translate-y-[100%] scale-[0.49] sm:scale-[0.70] md:scale-[0.80] w-[420px] h-[420px] flex items-center justify-center z-30 pointer-events-none origin-top-left md:origin-center">
 
                     {/* Planet Body - fixed pixel dimensions, scaling handled parent */}
-                    <div className="absolute inset-0 m-auto w-52 h-52 rounded-full z-20 overflow-hidden shadow-[0_0_120px_rgba(236,57,44,0.4),0_0_40px_rgba(236,57,44,0.3)]">
+                    <div className="absolute inset-0 m-auto w-[250px] h-[250px] rounded-full z-20 overflow-hidden shadow-[0_0_120px_rgba(236,57,44,0.4),0_0_40px_rgba(236,57,44,0.3)]">
                         {/* Surface Image */}
                         <img src={theme === 'dark' ? '/planet.png' : '/planet-light.png'} alt="Planet Surface" className="absolute inset-0 w-full h-full object-cover rounded-full" />
                         {/* 3D lighting - highlight top-left, shadow bottom-right */}
@@ -92,68 +92,68 @@ export default function HeroSection() {
 
                 <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-end md:justify-center z-10 pb-8 md:pb-0">
 
-                    {/* Main Stats Panel - 70% width on sub-md screens */}
-                    <div className="w-[58%] translate-x-6 md:w-[420px] md:translate-x-12 glass-panel rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-6 shadow-2xl floating border border-[var(--border-color)]" style={{ transformStyle: 'preserve-3d', transform: 'rotateY(-5deg) rotateX(5deg)' }}>
+                    {/* Main Stats Panel */}
+                    <div className="w-[60%] sm:w-[50%] md:w-[420px] absolute right-0 bottom-4 md:relative md:right-auto md:bottom-auto md:translate-x-12 glass-panel rounded-xl md:rounded-2xl p-2.5 sm:p-4 md:p-6 shadow-2xl floating border border-[var(--border-color)] z-20" style={{ transformStyle: 'preserve-3d', transform: 'rotateY(-5deg) rotateX(5deg)' }}>
 
-                        <div className="flex justify-between items-center mb-4 md:mb-6">
+                        <div className="flex justify-between items-center mb-3 md:mb-6">
                             <div className="flex items-center gap-2 md:gap-3">
-                                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#1877F2]/20 flex items-center justify-center">
-                                    <i className="fa-brands fa-facebook text-[#1877F2] text-sm md:text-xl"></i>
+                                <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full bg-[#1877F2]/20 flex items-center justify-center shrink-0">
+                                    <i className="fa-brands fa-facebook text-[#1877F2] text-xs sm:text-sm md:text-xl"></i>
                                 </div>
-                                <div>
-                                    <h4 className="font-bold text-[var(--text-primary)] text-xs md:text-sm">Facebook Likes</h4>
-                                    <p className="text-[10px] md:text-xs text-[var(--text-secondary)]">@star_traveler</p>
+                                <div className="min-w-0">
+                                    <h4 className="font-bold text-[var(--text-primary)] text-[10px] sm:text-xs md:text-sm truncate">Facebook Likes</h4>
+                                    <p className="text-[9px] md:text-xs text-[var(--text-secondary)] truncate">@star_traveler</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="space-y-2 md:space-y-3 mb-4 md:mb-6">
-                            <div className="flex justify-between text-[10px] md:text-xs text-brand-accent font-mono font-medium">
+                        <div className="space-y-1.5 md:space-y-3 mb-3 md:mb-6">
+                            <div className="flex justify-between text-[9px] md:text-xs text-brand-accent font-mono font-medium">
                                 <span>Tiến Độ</span>
                                 <span>82%</span>
                             </div>
-                            <div className="h-1.5 w-full bg-black/50 rounded-full overflow-hidden">
+                            <div className="h-1 md:h-1.5 w-full bg-black/50 rounded-full overflow-hidden">
                                 <div className="h-full bg-gradient-to-r from-brand-accent to-yellow-400 w-[82%] shadow-neon relative">
                                     <div className="absolute top-0 right-0 bottom-0 w-10 bg-white/30 skew-x-[-20deg] animate-shimmer"></div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 md:gap-4">
-                            <div className="bg-[var(--total-bg)] rounded-lg md:rounded-xl p-2 md:p-3 border border-[var(--border-color)] box-border">
-                                <p className="text-[9px] md:text-xs text-[var(--text-muted)] mb-0.5 md:mb-1">Trạng Thái</p>
-                                <p className="text-[10px] md:text-sm font-bold flex items-center gap-1.5 md:gap-2 text-[var(--text-primary)]">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse"></span> Đang Chạy
+                        <div className="grid grid-cols-2 gap-1.5 md:gap-4">
+                            <div className="bg-[var(--total-bg)] rounded-lg md:rounded-xl p-1.5 md:p-3 border border-[var(--border-color)] box-border">
+                                <p className="text-[8px] md:text-xs text-[var(--text-muted)] mb-0.5 md:mb-1 truncate">Trạng Thái</p>
+                                <p className="text-[9px] md:text-sm font-bold flex items-center gap-1 md:gap-2 text-[var(--text-primary)] truncate">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse shrink-0"></span> Đang Chạy
                                 </p>
                             </div>
-                            <div className="bg-[var(--total-bg)] rounded-lg md:rounded-xl p-2 md:p-3 border border-[var(--border-color)] box-border">
-                                <p className="text-[9px] md:text-xs text-[var(--text-muted)] mb-0.5 md:mb-1">Tốc Độ</p>
-                                <p className="text-[10px] md:text-sm font-bold text-[var(--text-primary)] font-mono">1.2K/h</p>
+                            <div className="bg-[var(--total-bg)] rounded-lg md:rounded-xl p-1.5 md:p-3 border border-[var(--border-color)] box-border">
+                                <p className="text-[8px] md:text-xs text-[var(--text-muted)] mb-0.5 md:mb-1 truncate">Tốc Độ</p>
+                                <p className="text-[9px] md:text-sm font-bold text-[var(--text-primary)] font-mono truncate">1.2K/h</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Mini completion panel floating above - Shifted slightly down and left on mobile */}
-                    <div className="hidden sm:flex absolute top-12 md:top-4 right-12 md:-right-4 w-[220px] glass-panel rounded-xl p-3 items-center gap-3 shadow-[0_15px_30px_rgba(0,0,0,0.6)] border border-[#FF0000]/20 floating-delayed z-30">
-                        <div className="w-8 h-8 rounded-full bg-[#FF0000]/10 flex items-center justify-center border border-[#FF0000]/30">
-                            <i className="fa-solid fa-check text-[#FF0000] text-sm"></i>
+                    {/* Mini completion panel floating above */}
+                    <div className="flex absolute top-0 right-0 md:top-4 md:-right-4 w-[180px] sm:w-[220px] scale-90 sm:scale-100 origin-top-right glass-panel rounded-xl p-2 sm:p-3 items-center gap-2 sm:gap-3 shadow-[0_15px_30px_rgba(0,0,0,0.6)] border border-[#FF0000]/20 floating-delayed z-30">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[#FF0000]/10 flex items-center justify-center border border-[#FF0000]/30 shrink-0">
+                            <i className="fa-solid fa-check text-[#FF0000] text-xs sm:text-sm"></i>
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-[var(--text-primary)]">Đơn Hàng #8942</p>
-                            <p className="text-[10px] text-[var(--text-secondary)]">Youtube Subs đã hoàn thành</p>
+                            <p className="text-[10px] sm:text-xs font-bold text-[var(--text-primary)] truncate">Đơn Hàng #8942</p>
+                            <p className="text-[8px] sm:text-[10px] text-[var(--text-secondary)] truncate">Youtube Subs đã hoàn thành</p>
                         </div>
                     </div>
 
-                    {/* Mini TikTok Views Panel floating on the left - Shifted down on mobile */}
-                    <div className="hidden sm:flex absolute top-[60%] md:top-1/2 -left-4 md:-left-16 transform -translate-y-1/2 w-[160px] glass-panel rounded-xl p-2.5 items-center gap-2 shadow-[0_15px_30px_rgba(0,0,0,0.6)] border border-white/10 floating z-30">
-                        <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center border border-white/20 shrink-0">
-                            <i className="fa-brands fa-tiktok text-white text-xs"></i>
+                    {/* Mini TikTok Views Panel floating on the left */}
+                    <div className="flex absolute top-[55%] left-0 md:top-1/2 md:-left-16 transform -translate-y-1/2 w-[140px] sm:w-[160px] scale-90 sm:scale-100 origin-left glass-panel rounded-xl p-2 sm:p-2.5 items-center gap-1.5 sm:gap-2 shadow-[0_15px_30px_rgba(0,0,0,0.6)] border border-white/10 floating z-30">
+                        <div className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-white/10 flex items-center justify-center border border-white/20 shrink-0">
+                            <i className="fa-brands fa-tiktok text-white text-[10px] sm:text-xs"></i>
                         </div>
-                        <div className="flex-1">
-                            <p className="text-[11px] font-bold text-[var(--text-primary)] leading-tight mb-0.5">TikTok Views</p>
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-[var(--service-item-text)] text-[9px] font-mono whitespace-nowrap"><i className="fa-solid fa-arrow-trend-up"></i> +125K</span>
-                                <div className="h-1 flex-1 bg-black/50 rounded-full overflow-hidden">
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[9px] sm:text-[11px] font-bold text-[var(--text-primary)] leading-tight mb-0.5 truncate">TikTok Views</p>
+                            <div className="flex items-center gap-1 sm:gap-1.5">
+                                <span className="text-[var(--service-item-text)] text-[8px] sm:text-[9px] font-mono whitespace-nowrap"><i className="fa-solid fa-arrow-trend-up"></i> +125K</span>
+                                <div className="h-0.5 sm:h-1 flex-1 bg-black/50 rounded-full overflow-hidden">
                                     <div className="h-full bg-white w-[75%]"></div>
                                 </div>
                             </div>

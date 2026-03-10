@@ -224,7 +224,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                 )}
                                 {loadingProvider === 'google' ? 'Đang kết nối...' : 'Đăng nhập bằng Google'}
                             </button>
-                            <button
+                            {/* <button
                                 onClick={() => handleOAuthLogin('facebook')}
                                 disabled={loadingProvider !== null || loadingAuth}
                                 className="w-full flex items-center justify-center gap-3 bg-[#1877F2] hover:bg-[#166fe5] disabled:bg-[#1877F2]/70 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-md shadow-[#1877F2]/20"
@@ -235,7 +235,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                     <i className="fa-brands fa-facebook-f text-lg"></i>
                                 )}
                                 {loadingProvider === 'facebook' ? 'Đang kết nối...' : 'Đăng nhập bằng Facebook'}
-                            </button>
+                            </button> */}
                         </div>
 
                         {/* Divider */}
