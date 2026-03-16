@@ -37,6 +37,7 @@ export default function BlogAdminPage() {
     const [showEditor, setShowEditor] = useState(false);
     const [saving, setSaving] = useState(false);
     const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
+    const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
     // Form state
     const [title, setTitle] = useState('');
@@ -60,7 +61,25 @@ export default function BlogAdminPage() {
         setLoading(false);
     }, [supabase]);
 
-    useEffect(() => { fetchPosts(); }, []);
+    const checkAdmin = useCallback(async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            setIsAdmin(false);
+            return;
+        }
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+        
+        setIsAdmin(profile?.role === 'admin');
+    }, [supabase]);
+
+    useEffect(() => { 
+        checkAdmin();
+        fetchPosts(); 
+    }, [checkAdmin, fetchPosts]);
 
     function resetForm() {
         setTitle(''); setExcerpt(''); setContent(''); setCoverImage('');
@@ -119,6 +138,16 @@ export default function BlogAdminPage() {
     async function togglePublish(post: BlogPost) {
         await supabase.from('blog_posts').update({ is_published: !post.is_published, updated_at: new Date().toISOString() }).eq('id', post.id);
         fetchPosts();
+    }
+
+    if (isAdmin === false) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+                <i className="fa-solid fa-lock text-5xl text-red-500 mb-4 opacity-50"></i>
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Truy cập bị từ chối</h1>
+                <p className="text-[var(--text-secondary)] mt-2">Bạn không có quyền quản lý bài viết.</p>
+            </div>
+        );
     }
 
     const inputClass = "w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl px-4 py-3 text-[var(--input-text)] focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-[var(--input-placeholder)]";

@@ -30,6 +30,18 @@ export default function SeedingBanner() {
                                 alt="iPhone Mobile"
                                 className="absolute bottom-[-10%] left-[62%] lg:left-[68%] w-[28%] lg:w-[36%] h-auto object-contain drop-shadow-2xl floating-delayed z-20"
                             />
+
+                            {/* Decorative Floating Icons */}
+                            <img src="/icon/heart.png" className="absolute -top-10 left-10 w-12 h-auto floating opacity-90 z-30" style={{ animationDelay: '0s', animationDuration: '5s' }} alt="" />
+                            <img src="/icon/like.png" className="absolute top-10 -left-16 w-24 h-auto floating-delayed opacity-90 z-30" style={{ animationDelay: '1.5s', animationDuration: '6s' }} alt="" />
+                            <img src="/icon/comment.png" className="absolute -bottom-10 left-0 w-14 h-auto floating opacity-90 z-30" style={{ animationDelay: '2.5s', animationDuration: '4.5s' }} alt="" />
+                            <img src="/icon/share.png" className="absolute top-0 -right-4 w-11 h-auto floating-delayed opacity-85 z-30" style={{ animationDelay: '0.8s', animationDuration: '7s' }} alt="" />
+                            <img src="/icon/view.png" className="absolute bottom-20 -right-16 w-16 h-auto floating opacity-90 z-30" style={{ animationDelay: '3.2s', animationDuration: '5.5s' }} alt="" />
+                            
+                            {/* Tiny accents */}
+                            <img src="/icon/heart.png" className="absolute top-1/2 -left-20 w-6 h-auto floating opacity-60 z-30" style={{ animationDelay: '4s', animationDuration: '8s' }} alt="" />
+                            <img src="/icon/like.png" className="absolute -top-20 right-28 w-12 h-auto floating-delayed opacity-60 z-30" style={{ animationDelay: '1.2s', animationDuration: '9s' }} alt="" />
+                            <img src="/icon/view.png" className="absolute bottom-0 left-[85%] w-10 h-auto floating opacity-50 z-10" style={{ animationDelay: '2s', animationDuration: '7.5s' }} alt="" />
                         </div>
                     </div>
 

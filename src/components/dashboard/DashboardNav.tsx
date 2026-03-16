@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { usePreferences } from '@/contexts/PreferencesContext';
 
-export default function DashboardNav() {
+export default function DashboardNav({ userRole = 'member' }: { userRole?: string }) {
     const pathname = usePathname();
     const { t } = usePreferences();
 
@@ -12,9 +12,12 @@ export default function DashboardNav() {
         { name: t('sidebar.overview'), href: '/dashboard', icon: 'fa-table-columns', exact: true },
         { name: t('sidebar.servicePricing'), href: '/dashboard/service/facebook', icon: 'fa-layer-group', isServiceNav: true },
         { name: t('sidebar.transactions'), href: '/dashboard/transactions', icon: 'fa-clock-rotate-left' },
-        { name: 'Blog', href: '/dashboard/blog', icon: 'fa-pen-nib' },
+        { name: 'Blog', href: '/dashboard/blog', icon: 'fa-pen-nib', adminOnly: true },
+        { name: 'Khách hàng', href: '/dashboard/chat-reports', icon: 'fa-headset', adminOnly: true },
         { name: t('sidebar.addFunds'), href: '/dashboard/add-funds', icon: 'fa-credit-card', isHighlight: true },
     ];
+
+    const filteredTabs = tabs.filter(tab => !tab.adminOnly || userRole === 'admin');
 
     const socialLinks = [
         { id: 'facebook', name: 'Facebook', href: '/dashboard/service/facebook', icon: 'fa-facebook', color: '#1877F2' },
@@ -32,7 +35,7 @@ export default function DashboardNav() {
         <nav className="w-full">
             {/* Primary Navigation Tabs */}
             <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
-                {tabs.map((tab) => {
+                {filteredTabs.map((tab) => {
                     let isActive = false;
                     if (tab.exact) {
                         isActive = pathname === tab.href;

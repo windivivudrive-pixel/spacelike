@@ -12,7 +12,8 @@ export async function POST(req: Request) {
 
         // Check if the latest user message contains a phone number
         const lastUserMsg = messages[messages.length - 1];
-        const hasPhoneNumber = /(0[3|5|7|8|9])+([0-9]{8})\b/.test(lastUserMsg.content);
+        // More robust Vietnam phone regex: 10 digits starting with 03, 05, 07, 08, 09
+        const hasPhoneNumber = /\b(0[35789]\d{8})\b/.test(lastUserMsg.content);
 
         // Fetch services context from DB
         const supabase = await createClient();
@@ -71,6 +72,7 @@ Quy tắc giao tiếp và trả lời:
 
         // --- Background extraction process ---
         if (hasPhoneNumber) {
+            console.log("[Chat] Phone number detected, starting background extraction...");
             // Run asynchronously without blocking the main stream response
             (async () => {
                 try {
@@ -93,21 +95,36 @@ Quy tắc giao tiếp và trả lời:
                         const textData = extractData.candidates?.[0]?.content?.parts?.[0]?.text;
                         if (textData) {
                             const parsed = JSON.parse(textData);
+                            console.log("[Chat] Extracted data:", parsed);
                             if (parsed.customer_name && parsed.phone_number) {
-                                // Save to Supabase
-                                const sb = await createClient();
-                                await sb.from('customer_reports').insert({
+                                // Use a direct Supabase client instead of the SSR one to avoid cookie issues in background tasks
+                                const { createClient: createSimpleClient } = await import('@supabase/supabase-js');
+                                const sb = createSimpleClient(
+                                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+                                );
+
+                                const { error: insertError } = await sb.from('customer_reports').insert({
                                     customer_name: parsed.customer_name,
                                     phone_number: parsed.phone_number,
                                     order_code: parsed.order_code || null,
                                     conversation: messages
                                 });
-                                console.log('Successfully saved customer report:', parsed);
+
+                                if (insertError) {
+                                    console.error("[Chat] Database insert failed:", insertError);
+                                } else {
+                                    console.log('[Chat] Successfully saved customer report to DB.');
+                                }
+                            } else {
+                                console.log("[Chat] Missing name or phone in extracted data, skipping save.");
                             }
                         }
+                    } else {
+                        console.error("[Chat] Extraction API failed:", await extractRes.text());
                     }
                 } catch (e) {
-                    console.error("Background extraction failed:", e);
+                    console.error("[Chat] Background extraction error:", e);
                 }
             })();
         }

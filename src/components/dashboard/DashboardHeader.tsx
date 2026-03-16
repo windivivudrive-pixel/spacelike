@@ -5,7 +5,7 @@ import { usePreferences } from '@/contexts/PreferencesContext';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 
-export default function DashboardHeader({ userName, initialBalance, userId, userEmail, avatarUrl = '/avartar.png' }: { userName: string, initialBalance: number, userId?: string, userEmail?: string, avatarUrl?: string }) {
+export default function DashboardHeader({ userName, initialBalance, userId, userEmail, avatarUrl = '/avartar.png', userRole = 'member' }: { userName: string, initialBalance: number, userId?: string, userEmail?: string, avatarUrl?: string, userRole?: string }) {
     const { currency, setCurrency, language, setLanguage, formatCurrency, theme, toggleTheme } = usePreferences();
     const [currencyOpen, setCurrencyOpen] = useState(false);
     const [languageOpen, setLanguageOpen] = useState(false);
@@ -45,7 +45,7 @@ export default function DashboardHeader({ userName, initialBalance, userId, user
 
     // Fetch provider balance if user is admin
     useEffect(() => {
-        if (userEmail === 'quochungdn151@gmail.com') {
+        if (userRole === 'admin') {
             const fetchProviderBalance = async () => {
                 try {
                     const res = await fetch('/api/provider/balance', {
@@ -165,15 +165,24 @@ export default function DashboardHeader({ userName, initialBalance, userId, user
                 </button>
 
                 <div className="hidden sm:block">
-                    <div className="font-display font-bold text-lg text-[var(--text-primary)] leading-tight">
-                        {userName}
-                        {providerBalance !== null && (
-                            <span className="ml-2 text-xs bg-brand-accent/20 text-brand-accent px-2 py-0.5 rounded-full border border-brand-accent/40 normal-case align-middle" title="Provider Balance">
-                                Gốc: {formatCurrency(providerBalance)}
+                    <div className="flex items-center gap-2">
+                        <div className="font-display font-bold text-lg text-[var(--text-primary)] leading-tight">
+                            {userName}
+                        </div>
+                        {userRole === 'admin' && (
+                            <span className="text-[10px] bg-red-500/10 text-red-500 px-1.5 py-0.5 rounded border border-red-500/20 font-bold uppercase tracking-wider">
+                                Admin
                             </span>
                         )}
                     </div>
-                    <div className="text-[var(--text-secondary)] font-medium text-sm">
+                    {providerBalance !== null && (
+                        <div className="mt-0.5">
+                            <span className="text-[10px] bg-brand-accent/20 text-brand-accent px-2 py-0.5 rounded-full border border-brand-accent/40 font-medium">
+                                Gốc: {formatCurrency(providerBalance)}
+                            </span>
+                        </div>
+                    )}
+                    <div className="text-[var(--text-secondary)] font-medium text-sm mt-0.5">
                         {formatCurrency(balance)}
                     </div>
                 </div>

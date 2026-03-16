@@ -28,17 +28,25 @@ export default function Header() {
 
             if (session?.user) {
                 const userMetadata = session.user.user_metadata;
-                if (userMetadata?.avatar_url) {
-                    setAvatarUrl(userMetadata.avatar_url);
-                }
+                
+                // Fetch profile info including avatar_url and username from DB
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('balance, avatar_url, username')
+                    .eq('id', session.user.id)
+                    .single();
 
-                const displayName = userMetadata?.username || userMetadata?.name || session.user.email || 'User';
-                setUserName(displayName);
-
-                // Fetch balance
-                const { data } = await supabase.from('profiles').select('balance').eq('id', session.user.id).single();
-                if (data && data.balance !== undefined) {
-                    setBalance(Number(data.balance));
+                if (profile) {
+                    if (profile.balance !== undefined) setBalance(Number(profile.balance));
+                    if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
+                    else if (userMetadata?.avatar_url) setAvatarUrl(userMetadata.avatar_url);
+                    
+                    const displayName = profile.username || userMetadata?.username || userMetadata?.name || session.user.email || 'User';
+                    setUserName(displayName);
+                } else {
+                    if (userMetadata?.avatar_url) setAvatarUrl(userMetadata.avatar_url);
+                    const displayName = userMetadata?.username || userMetadata?.name || session.user.email || 'User';
+                    setUserName(displayName);
                 }
             }
 
@@ -52,16 +60,31 @@ export default function Header() {
                 setSession(session);
                 if (session?.user) {
                     const userMetadata = session.user.user_metadata;
-                    if (userMetadata?.avatar_url) {
-                        setAvatarUrl(userMetadata.avatar_url);
-                    }
-                    const displayName = userMetadata?.username || userMetadata?.name || session.user.email || 'User';
-                    setUserName(displayName);
+                    
+                    // Fetch profile info including avatar_url and username from DB
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('balance, avatar_url, username')
+                        .eq('id', session.user.id)
+                        .single();
 
-                    const { data } = await supabase.from('profiles').select('balance').eq('id', session.user.id).single();
-                    if (data && data.balance !== undefined) {
-                        setBalance(Number(data.balance));
+                    if (profile) {
+                        if (profile.balance !== undefined) setBalance(Number(profile.balance));
+                        if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
+                        else if (userMetadata?.avatar_url) setAvatarUrl(userMetadata.avatar_url);
+                        
+                        const displayName = profile.username || userMetadata?.username || userMetadata?.name || session.user.email || 'User';
+                        setUserName(displayName);
+                    } else {
+                        if (userMetadata?.avatar_url) setAvatarUrl(userMetadata.avatar_url);
+                        const displayName = userMetadata?.username || userMetadata?.name || session.user.email || 'User';
+                        setUserName(displayName);
                     }
+                } else {
+                    // Reset states on logout
+                    setUserName('');
+                    setAvatarUrl('/avartar.png');
+                    setBalance(0);
                 }
             }
         );
@@ -99,6 +122,9 @@ export default function Header() {
     const handleLogout = async () => {
         await supabase.auth.signOut();
         setSession(null);
+        setUserName('');
+        setAvatarUrl('/avartar.png');
+        setBalance(0);
         setIsAvatarDropdownOpen(false);
     };
 
@@ -132,7 +158,7 @@ export default function Header() {
 
                     {!loadingAuth && (
                         session ? (
-                            <div className="hidden md:flex items-center gap-4 pl-4 border-l border-[var(--border-color)] relative">
+                            <div className="flex items-center gap-4 pl-4 border-l border-[var(--border-color)] relative">
                                 <button
                                     onClick={() => setIsAvatarDropdownOpen(!isAvatarDropdownOpen)}
                                     className="flex items-center gap-3 relative focus:outline-none group p-1"
@@ -143,9 +169,9 @@ export default function Header() {
                                         <img
                                             src={avatarUrl}
                                             alt="User Avatar"
-                                            className="relative w-10 h-10 rounded-full object-cover border-2 border-black bg-black transition-transform group-hover:scale-105"
+                                            className="relative w-8 h-8 md:w-10 md:h-10 rounded-full object-cover border-2 border-black bg-black transition-transform group-hover:scale-105"
                                         />
-                                        <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#FF4B4B] border-2 border-black z-10 transition-transform group-hover:scale-110"></div>
+                                        <div className="absolute bottom-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#FF4B4B] border-2 border-black z-10 transition-transform group-hover:scale-110"></div>
                                     </div>
                                     <div className="hidden lg:block text-left">
                                         <div className="font-display font-bold text-sm text-[var(--text-primary)] leading-tight truncate max-w-[120px]">

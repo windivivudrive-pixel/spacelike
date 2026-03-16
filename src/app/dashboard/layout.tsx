@@ -24,8 +24,9 @@ export default async function DashboardLayout({
 
     let initialBalance = 0;
     let avatarUrl = '/avartar.png'; // default avatar
+    let userRole = 'member';
     if (session?.user?.id) {
-        const { data } = await supabase.from('profiles').select('balance, avatar_url').eq('id', session?.user?.id).single();
+        const { data } = await supabase.from('profiles').select('balance, avatar_url, role').eq('id', session?.user?.id).single();
         if (data && data.balance) {
             initialBalance = Number(data.balance);
         }
@@ -33,6 +34,9 @@ export default async function DashboardLayout({
             avatarUrl = data.avatar_url;
         } else if (userMetadata?.avatar_url) {
             avatarUrl = userMetadata.avatar_url;
+        }
+        if (data && data.role) {
+            userRole = data.role;
         }
     }
 
@@ -58,6 +62,7 @@ export default async function DashboardLayout({
                                 userId={session?.user?.id}
                                 userEmail={session?.user?.email}
                                 avatarUrl={avatarUrl}
+                                userRole={userRole}
                             />
                         </div>
                     </div>
@@ -66,7 +71,7 @@ export default async function DashboardLayout({
                 {/* Navigation Tabs */}
                 <div style={{ background: 'var(--bg-glass-nav)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }} className="border-b border-[var(--border-color)] transition-colors duration-300">
                     <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
-                        <DashboardNav />
+                        <DashboardNav userRole={userRole} />
                     </div>
                 </div>
 
