@@ -7,7 +7,7 @@ export default async function DashboardOverview() {
 
     // Try to use full name from providers if available, else email
     const userMetadata = session?.user?.user_metadata;
-    const displayName = userMetadata?.full_name || userMetadata?.name || session?.user?.email || 'User';
+    const displayName = userMetadata?.username || userMetadata?.name || session?.user?.email || 'User';
 
     let initialBalance = 0;
     if (session?.user?.id) {

@@ -18,7 +18,6 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [username, setUsername] = useState('');
-    const [fullName, setFullName] = useState('');
     const [phone, setPhone] = useState('');
 
     // UI States
@@ -54,7 +53,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         if (isRegisterMode) {
             // Validate Registration
-            if (!email || !password || !confirmPassword || !username || !fullName || !phone) {
+            if (!email || !password || !confirmPassword || !username || !phone) {
                 setErrorMsg('Vui lòng điền đầy đủ các trường.');
                 return;
             }
@@ -93,8 +92,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     options: {
                         data: {
                             username: username,
-                            phone_number: phone,
-                            full_name: fullName
+                            phone_number: phone
                         }
                     }
                 });
@@ -146,7 +144,6 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         setPassword('');
         setConfirmPassword('');
         setUsername('');
-        setFullName('');
         setPhone('');
         setErrorMsg('');
         setSuccessMsg('');
@@ -264,23 +261,6 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 {/* Traditional Auth Form */}
                 <form className="space-y-4" onSubmit={handleAuthSubmit}>
 
-                    {isRegisterMode && (
-                        <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-gray-300">Họ và Tên</label>
-                            <div className="relative text-white">
-                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <i className="fa-solid fa-address-card text-gray-500"></i>
-                                </div>
-                                <input
-                                    type="text"
-                                    value={fullName}
-                                    onChange={(e) => setFullName(e.target.value)}
-                                    className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600"
-                                    placeholder="Họ và Tên"
-                                />
-                            </div>
-                        </div>
-                    )}
 
                     {isRegisterMode && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -32,7 +32,7 @@ export default function Header() {
                     setAvatarUrl(userMetadata.avatar_url);
                 }
 
-                const displayName = userMetadata?.full_name || userMetadata?.name || session.user.email || 'User';
+                const displayName = userMetadata?.username || userMetadata?.name || session.user.email || 'User';
                 setUserName(displayName);
 
                 // Fetch balance
@@ -55,7 +55,7 @@ export default function Header() {
                     if (userMetadata?.avatar_url) {
                         setAvatarUrl(userMetadata.avatar_url);
                     }
-                    const displayName = userMetadata?.full_name || userMetadata?.name || session.user.email || 'User';
+                    const displayName = userMetadata?.username || userMetadata?.name || session.user.email || 'User';
                     setUserName(displayName);
 
                     const { data } = await supabase.from('profiles').select('balance').eq('id', session.user.id).single();

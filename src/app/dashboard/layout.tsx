@@ -20,7 +20,7 @@ export default async function DashboardLayout({
     }
 
     const userMetadata = session?.user?.user_metadata;
-    const displayName = userMetadata?.full_name || userMetadata?.name || session?.user?.email || 'User';
+    const displayName = userMetadata?.username || userMetadata?.name || session?.user?.email || 'User';
 
     let initialBalance = 0;
     let avatarUrl = '/avartar.png'; // default avatar

@@ -10,6 +10,10 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing messages' }, { status: 400 });
         }
 
+        // Check if the latest user message contains a phone number
+        const lastUserMsg = messages[messages.length - 1];
+        const hasPhoneNumber = /(0[3|5|7|8|9])+([0-9]{8})\b/.test(lastUserMsg.content);
+
         // Fetch services context from DB
         const supabase = await createClient();
         const { data: services } = await supabase.from('services').select('*').eq('is_active', true);
@@ -28,11 +32,11 @@ ${servicesContext}
 </services>
 
 Quy tắc giao tiếp và trả lời:
-1. Xưng hô: Xưng mình/em và gọi khách hàng là bạn/anh/chị một cách thân thiện, lễ phép (Có dùng các cụm từ đệm như dạ, vâng, ạ).
-2. Tư vấn giá chuẩn xác: Dựa VÀO CHÍNH XÁC bảng giá trên để lấy giá, KHÔNG BAO GIỜ tự bịa ra dịch vụ hay giá cả không tồn tại. Giá trên định mức là VND cho mỗi 1000 lượt thao tác. Nếu khách hỏi "Bao nhiêu 1 nghìn like?", hãy báo giá chính xác của dịch vụ Like.
-3. Nếu khách hỏi những dịch vụ nằm ngoài bảng giá: Hãy nói rõ ràng nhưng khéo léo "Dạ hiện tại bên em chưa triển khai gói này, nhưng SpaceLike có các dịch vụ cực hấp dẫn khác về Facebook, TikTok... anh chị có thể tham khảo ạ".
-4. Khuyến khích: Hướng dẫn họ Đăng ký/Đăng nhập (góc phải trên cùng website) rồi Nạp tiền vào tài khoản để tạo đơn hàng.
-5. Ngắn gọn, có cảm xúc: Dùng thêm các Emoji vui vẻ (🚀, ✨, 💬, ❤️) nhưng không lạm dụng. Giữ câu trả lời súc tích, tránh dài dòng máy móc.`
+5. Xử lý sự cố/Lỗi đơn/Không lên:
+   - Nếu khách báo lỗi/không chạy: Kiểm tra xem khách đã cung cấp đủ [Mã đơn/Link], [SĐT], [Tên] chưa.
+   - Nếu THIẾU: Xin những thông tin còn thiếu một cách lịch sự, ngắn gọn: "Dạ em xin lỗi về sự cố này. Anh/Chị cho em xin thêm [thông tin còn thiếu] để em báo kỹ thuật hỗ trợ ngay ạ."
+   - Nếu ĐỦ: Xác nhận đã nhận thông tin và báo: "Dạ em đã nhận đủ thông tin của Anh/Chị. Em đã gửi kỹ thuật kiểm tra và nhân viên sẽ gọi phản hồi cho Anh/Chị sớm nhất nhé ạ."
+6. Cảm xúc: Dùng thêm Emoji (🚀, ✨, 💬, ❤️) nhưng chỉ 1-2 cái mỗi tin nhắn.`
             }]
         };
 
@@ -47,8 +51,8 @@ Quy tắc giao tiếp và trả lời:
             return NextResponse.json({ error: 'System not configured properly' }, { status: 500 });
         }
 
-        // Use Vertex AI Express API endpoint with streaming SSE
-        const url = `https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`;
+        // Use Google AI Studio API endpoint with streaming
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:streamGenerateContent?alt=sse&key=${apiKey}`;
 
         const response = await fetch(url, {
             method: 'POST',
@@ -59,18 +63,62 @@ Quy tắc giao tiếp và trả lời:
                 systemInstruction: systemInstruction,
                 contents: geminiHistory,
                 generationConfig: {
-                    temperature: 0.5, // keep responses quite focused
+                    temperature: 0.5,
                     maxOutputTokens: 800
                 }
             })
         });
 
+        // --- Background extraction process ---
+        if (hasPhoneNumber) {
+            // Run asynchronously without blocking the main stream response
+            (async () => {
+                try {
+                    const extractPrompt = `Trích xuất thông tin khách hàng từ đoạn hội thoại sau. Trả về đúng định dạng JSON: {"customer_name": "...", "phone_number": "...", "order_code": "..."}. Nếu không có mã đơn hàng, để chuỗi rỗng "".\n\nĐoạn hội thoại:\n${JSON.stringify(messages)}`;
+                    const extractUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
+                    
+                    const extractRes = await fetch(extractUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: extractPrompt }] }],
+                            generationConfig: {
+                                responseMimeType: "application/json",
+                            }
+                        })
+                    });
+
+                    if (extractRes.ok) {
+                        const extractData = await extractRes.json();
+                        const textData = extractData.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (textData) {
+                            const parsed = JSON.parse(textData);
+                            if (parsed.customer_name && parsed.phone_number) {
+                                // Save to Supabase
+                                const sb = await createClient();
+                                await sb.from('customer_reports').insert({
+                                    customer_name: parsed.customer_name,
+                                    phone_number: parsed.phone_number,
+                                    order_code: parsed.order_code || null,
+                                    conversation: messages
+                                });
+                                console.log('Successfully saved customer report:', parsed);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Background extraction failed:", e);
+                }
+            })();
+        }
+        // ------------------------------------
+
         if (!response.ok) {
             const errorText = await response.text();
-            console.error("Vertex API Error:", errorText);
+            console.error("Gemini API Error:", errorText);
 
-            // Fallback to flash-lite streaming
-            const liteUrl = `https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash-lite:streamGenerateContent?alt=sse&key=${apiKey}`;
+            // Fallback to flash-lite-preview-09-2025 if needed, though gemini-2.5-flash-lite is preferred
+            const liteUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`;
             const liteResponse = await fetch(liteUrl, {
                 method: 'POST',
                 headers: {
@@ -88,7 +136,7 @@ Quy tắc giao tiếp và trả lời:
 
             if (!liteResponse.ok) {
                 const errLite = await liteResponse.text();
-                console.error("Vertex API Lite Error:", errLite);
+                console.error("Gemini API Fallback Error:", errLite);
                 return NextResponse.json({ error: 'System API failed' }, { status: 500 });
             }
 

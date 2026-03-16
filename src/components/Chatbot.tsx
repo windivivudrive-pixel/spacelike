@@ -11,7 +11,7 @@ interface Message {
 export default function Chatbot() {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
-        { role: 'assistant', content: 'Dạ xin chào! Mình là trợ lý ảo của SpaceLike 🚀. Chào mừng bạn đến với hệ thống SMM Panel xịn xò nhất vũ trụ. Bạn có cần mình hỗ trợ tìm dịch vụ nào không ạ?' }
+        { role: 'assistant', content: 'Dạ xin chào! Em là trợ lý ảo của SpaceLike 🚀. Chào mừng Anh/Chị đến với hệ thống SMM Panel xịn xò nhất vũ trụ. Anh/Chị có cần em hỗ trợ tìm dịch vụ nào không ạ?' }
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +45,7 @@ export default function Chatbot() {
             });
 
             if (!resp.ok) {
-                setMessages(prev => [...prev, { role: 'assistant', content: 'Xin lỗi bạn, đường truyền trạm vũ trụ bị nhiễu. Bạn thử nhắn lại xíu nha 😢' }]);
+                setMessages(prev => [...prev, { role: 'assistant', content: 'Xin lỗi Anh/Chị, đường truyền trạm vũ trụ bị nhiễu. Anh/Chị thử nhắn lại xíu nha 😢' }]);
                 return;
             }
 
@@ -76,9 +76,14 @@ export default function Chatbot() {
                             if (textChunk) {
                                 setMessages(prev => {
                                     const newMsgs = [...prev];
-                                    const lastMsg = newMsgs[newMsgs.length - 1];
+                                    const lastIndex = newMsgs.length - 1;
+                                    const lastMsg = newMsgs[lastIndex];
                                     if (lastMsg.role === 'assistant') {
-                                        lastMsg.content += textChunk;
+                                        // Create a whole new object to avoid mutating state and triggering Strict Mode double-render bugs
+                                        newMsgs[lastIndex] = {
+                                            ...lastMsg,
+                                            content: lastMsg.content + textChunk
+                                        };
                                     }
                                     return newMsgs;
                                 });
@@ -91,7 +96,7 @@ export default function Chatbot() {
             }
         } catch (error) {
             console.error("Chat error:", error);
-            setMessages(prev => [...prev, { role: 'assistant', content: 'Lỗi hệ thống mất rồi, vui lòng thử lại sau bạn nhé.' }]);
+            setMessages(prev => [...prev, { role: 'assistant', content: 'Lỗi hệ thống mất rồi, vui lòng thử lại sau Anh/Chị nhé.' }]);
         } finally {
             setIsLoading(false);
         }
