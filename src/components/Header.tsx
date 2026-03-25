@@ -29,28 +29,30 @@ export default function Header() {
             if (session?.user) {
                 const userMetadata = session.user.user_metadata;
                 
-                // Fetch profile info including avatar_url and username from DB
-                const { data: profile } = await supabase
+                // Fallback UI data immediately available
+                if (userMetadata?.avatar_url) setAvatarUrl(userMetadata.avatar_url);
+                const displayName = userMetadata?.username || userMetadata?.name || session.user.email || 'User';
+                setUserName(displayName);
+                
+                // Remove loading immediately to show the avatar faster
+                setLoadingAuth(false);
+
+                // Fetch profile info including avatar_url and username from DB asynchronously
+                supabase
                     .from('profiles')
                     .select('balance, avatar_url, username')
                     .eq('id', session.user.id)
-                    .single();
-
-                if (profile) {
-                    if (profile.balance !== undefined) setBalance(Number(profile.balance));
-                    if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
-                    else if (userMetadata?.avatar_url) setAvatarUrl(userMetadata.avatar_url);
-                    
-                    const displayName = profile.username || userMetadata?.username || userMetadata?.name || session.user.email || 'User';
-                    setUserName(displayName);
-                } else {
-                    if (userMetadata?.avatar_url) setAvatarUrl(userMetadata.avatar_url);
-                    const displayName = userMetadata?.username || userMetadata?.name || session.user.email || 'User';
-                    setUserName(displayName);
-                }
+                    .single()
+                    .then(({ data: profile }) => {
+                        if (profile) {
+                            if (profile.balance !== undefined) setBalance(Number(profile.balance));
+                            if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
+                            if (profile.username) setUserName(profile.username);
+                        }
+                    });
+            } else {
+                setLoadingAuth(false);
             }
-
-            setLoadingAuth(false);
         };
 
         fetchSession();
@@ -61,30 +63,31 @@ export default function Header() {
                 if (session?.user) {
                     const userMetadata = session.user.user_metadata;
                     
+                    if (userMetadata?.avatar_url) setAvatarUrl(userMetadata.avatar_url);
+                    const displayName = userMetadata?.username || userMetadata?.name || session.user.email || 'User';
+                    setUserName(displayName);
+                    
+                    setLoadingAuth(false);
+
                     // Fetch profile info including avatar_url and username from DB
-                    const { data: profile } = await supabase
+                    supabase
                         .from('profiles')
                         .select('balance, avatar_url, username')
                         .eq('id', session.user.id)
-                        .single();
-
-                    if (profile) {
-                        if (profile.balance !== undefined) setBalance(Number(profile.balance));
-                        if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
-                        else if (userMetadata?.avatar_url) setAvatarUrl(userMetadata.avatar_url);
-                        
-                        const displayName = profile.username || userMetadata?.username || userMetadata?.name || session.user.email || 'User';
-                        setUserName(displayName);
-                    } else {
-                        if (userMetadata?.avatar_url) setAvatarUrl(userMetadata.avatar_url);
-                        const displayName = userMetadata?.username || userMetadata?.name || session.user.email || 'User';
-                        setUserName(displayName);
-                    }
+                        .single()
+                        .then(({ data: profile }) => {
+                            if (profile) {
+                                if (profile.balance !== undefined) setBalance(Number(profile.balance));
+                                if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
+                                if (profile.username) setUserName(profile.username);
+                            }
+                        });
                 } else {
                     // Reset states on logout
                     setUserName('');
                     setAvatarUrl('/avartar.png');
                     setBalance(0);
+                    setLoadingAuth(false);
                 }
             }
         );

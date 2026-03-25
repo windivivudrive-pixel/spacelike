@@ -116,14 +116,30 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         } else {
             // Handle Login
             if (!email || !password) {
-                setErrorMsg('Vui lòng nhập Email và Mật khẩu.');
+                setErrorMsg('Vui lòng nhập Email/Username và Mật khẩu.');
                 return;
             }
 
             setLoadingAuth(true);
             try {
+                let loginEmail = email;
+
+                // Check if the input is a username (doesn't contain @)
+                if (!email.includes('@')) {
+                    const { data: profile, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('email')
+                        .eq('username', email)
+                        .single();
+
+                    if (profileError || !profile?.email) {
+                        throw new Error('Tên đăng nhập không tồn tại.');
+                    }
+                    loginEmail = profile.email;
+                }
+
                 const { error } = await supabase.auth.signInWithPassword({
-                    email,
+                    email: loginEmail,
                     password,
                 });
                 if (error) throw error;
@@ -132,7 +148,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 window.location.href = '/dashboard';
             } catch (error: any) {
                 console.error('Login error:', error);
-                setErrorMsg('Thông tin đăng nhập không chính xác.');
+                setErrorMsg(error.message === 'Tên đăng nhập không tồn tại.' ? error.message : 'Thông tin đăng nhập không chính xác.');
             } finally {
                 setLoadingAuth(false);
             }
@@ -265,7 +281,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     {isRegisterMode && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-gray-300">Tên hiển thị</label>
+                                <label className="text-sm font-medium text-gray-300">Username</label>
                                 <div className="relative text-white">
                                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                                         <i className="fa-solid fa-user-tag text-gray-500"></i>
@@ -298,17 +314,19 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     )}
 
                     <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-gray-300">Email</label>
+                        <label className="text-sm font-medium text-gray-300">
+                            {!isRegisterMode ? 'Email hoặc Tên đăng nhập' : 'Email'}
+                        </label>
                         <div className="relative text-white">
                             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                <i className="fa-solid fa-envelope text-gray-500"></i>
+                                <i className={`fa-solid ${!isRegisterMode ? 'fa-user-tag' : 'fa-envelope'} text-gray-500`}></i>
                             </div>
                             <input
-                                type="email"
+                                type={!isRegisterMode ? "text" : "email"}
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600"
-                                placeholder="name@example.com"
+                                placeholder={!isRegisterMode ? "Email hoặc Username" : "name@example.com"}
                             />
                         </div>
                     </div>

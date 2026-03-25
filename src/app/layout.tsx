@@ -4,6 +4,18 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Space Like - Chinh Phục Không Gian Mạng Xã Hội",
   description: "Hệ sinh thái mạng xã hội không giới hạn",
+  openGraph: {
+    title: "Tăng Cường Hiện Diện Mạng Xã Hội",
+    description: "Space Like - Hệ sinh thái mạng xã hội không giới hạn",
+    images: [{ url: "/thumb-web.png" }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tăng Cường Hiện Diện Mạng Xã Hội",
+    description: "Space Like - Hệ sinh thái mạng xã hội không giới hạn",
+    images: ["/thumb-web.png"],
+  },
 };
 
 import { PreferencesProvider } from "@/contexts/PreferencesContext";

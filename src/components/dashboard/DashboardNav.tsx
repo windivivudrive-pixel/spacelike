@@ -34,7 +34,7 @@ export default function DashboardNav({ userRole = 'member' }: { userRole?: strin
     return (
         <nav className="w-full">
             {/* Primary Navigation Tabs */}
-            <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
+            <div className="flex items-center justify-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
                 {filteredTabs.map((tab) => {
                     let isActive = false;
                     if (tab.exact) {
@@ -73,7 +73,7 @@ export default function DashboardNav({ userRole = 'member' }: { userRole?: strin
             {(pathname === '/dashboard/pricing' || isServicePage) && (
                 <div className="mt-4">
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap justify-center gap-2">
                         {socialLinks.map((item) => {
                             const isActive = pathname === item.href;
                             return (

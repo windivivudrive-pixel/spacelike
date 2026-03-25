@@ -6,43 +6,43 @@ import { usePreferences } from '@/contexts/PreferencesContext';
 const reviews = [
     {
         id: 1,
-        author: 'Liam Carter',
-        location: 'Canada',
-        summary: 'Hỗ trợ và dịch vụ vượt trội',
-        text: 'Đây là công ty tuyệt vời cung cấp dịch vụ nhanh chóng và hiệu quả. Đội ngũ hỗ trợ luôn phản hồi nhanh chóng và hữu ích.',
-        avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d'
+        author: 'Tran Thanh Trung, 32 tuổi',
+        location: 'CRM - TP. HCM',
+        summary: 'Tương tác rất tự nhiên',
+        text: 'Like với tương tác bên Spacelike làm rất ổn, nhìn rất tự nhiên. Support nhanh, cần chỉnh gì là xử lý liền nên mình khá yên tâm dùng cho dự án của khách hàng khi cần.',
+        avatar: '/reviewer1.png'
     },
     {
         id: 2,
-        author: 'Anna',
-        location: 'Vương quốc Anh',
-        summary: 'Cung cấp những gì đã hứa',
-        text: 'Hoạt động rất nhanh. Nếu bạn cần phát triển nhanh kênh truyền thông xã hội của mình thì bạn đang ở một nơi tốt.',
-        avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d'
+        author: 'Duc Pham, 35 tuổi',
+        location: 'Leader Marketing - Hà Nội',
+        summary: 'Support rất nhanh',
+        text: 'Team Spacelike support rất nhanh, dễ trao đổi. Triển khai lẹ mà chất lượng ổn, comment với like đều tăng rất chất lượng.',
+        avatar: '/reviewer2.png'
     },
     {
         id: 3,
-        author: 'Amal Thomas',
-        location: 'Ấn Độ',
-        summary: 'Giá trị thực sự xúng đáng',
-        text: 'Thực sự xứng đáng với số tiền bỏ ra!! Tôi đã nghi ngờ thư khi nhận kết quả không tốt từ nơi khác. Nhưng dịch vụ ở đây cực nhanh.',
-        avatar: 'https://i.pravatar.cc/150?u=a04258a2462d826712d'
+        author: 'Le Ngoc Quy, 42 tuổi',
+        location: 'Area Manager F&B - Đà Nẵng',
+        summary: 'Dịch vụ ổn áp nhất',
+        text: 'Trước mình cũng thử vài bên rồi nhưng bên này thấy ổn áp nhất. Seeding nhìn thật, không bị giả trân.',
+        avatar: '/reviewer3.png'
     },
     {
         id: 4,
-        author: 'Jackson Cống',
-        location: 'Canada',
-        summary: 'Tuyệt vời, dịch vụ HQ!',
-        text: 'Tốt hơn hầu hết các bảng điều khiển SMM hiện có. Một lượng rất nhỏ người theo dõi bị mất so với các dịch vụ khác.',
-        avatar: 'https://i.pravatar.cc/150?u=a048581f4e29026701d'
+        author: 'Misa Nguyen, 30 tuổi',
+        location: 'Manager Account - Tp. HCM',
+        summary: 'Giao diện rất đẹp',
+        text: 'Bên này giao diện rất đẹp, dễ dùng, làm việc có trách nhiệm. Nội dung seeding viết ổn, không bị gượng ép nên hiệu quả tốt hơn.',
+        avatar: '/reviewer4.png'
     },
     {
         id: 5,
-        author: 'Elena',
-        location: 'Tây Ban Nha',
-        summary: 'Chất lượng tuyệt hảo',
-        text: 'Nền tảng tốt nhất tôi từng sử dụng. Giao diện đẹp và các dịch vụ hoạt động cực kỳ mượt mà. Đội ngũ hỗ trợ cũng rất nhiệt tình!',
-        avatar: 'https://i.pravatar.cc/150?u=a048581f4e29026702d'
+        author: 'Nguyen Phuong Vy, 26 tuổi',
+        location: 'KOLs - Hà Nội',
+        summary: 'Build hình ảnh cá nhân',
+        text: 'Dùng để hỗ trợ build hình ảnh cá nhân khá ok. Tương tác nhìn rất tự nhiên nên mình cũng tự tin hơn khi đăng bài.',
+        avatar: '/reviewer5.png'
     }
 ];
 
@@ -132,7 +132,7 @@ export default function ReviewsSection() {
                                         <img
                                             src={review.avatar}
                                             alt={review.author}
-                                            className="w-10 h-10 rounded-full object-cover border-2 border-brand-accent/30 shadow-[0_0_10px_rgba(236,57,44,0.3)]"
+                                            className="w-20 h-20 rounded-full object-cover border-2 border-brand-accent/30 shadow-[0_0_10px_rgba(236,57,44,0.3)]"
                                         />
                                     </div>
                                     <div className="text-center">

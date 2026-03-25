@@ -167,7 +167,7 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
     if (!profile) return null;
 
     return (
-        <div className="flex flex-col gap-6 max-w-4xl">
+        <div className="flex flex-col gap-6 max-w-4xl mx-auto">
             <div className="relative rounded-[2rem] p-1 overflow-hidden shadow-2xl border border-brand-accent/20 hover:border-brand-accent/40 transition-colors duration-500">
                 {/* Top neon border gradient effect - Space Theme */}
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brand-accent to-transparent opacity-80"></div>
@@ -202,34 +202,77 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
                             </div>
                         )}
 
-                        {/* Category Selection */}
-                        <div className="space-y-2">
+                        {/* Category Selection (New Button Grid Layout) */}
+                        <div className="space-y-4">
                             <label className="text-sm font-semibold text-[var(--text-secondary)] tracking-wider uppercase block">
                                 <i className="fa-solid fa-folder-open mr-2 text-brand-accent/70"></i> Dịch vụ (Category)
                             </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <i className="fa-solid fa-layer-group text-[var(--text-muted)]"></i>
-                                </div>
-                                <select
-                                    value={selectedCategory}
-                                    onChange={(e) => handleCategoryChange(e.target.value)}
-                                    disabled={loading || categories.length === 0}
-                                    className="w-full bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl pl-12 pr-10 py-4 text-[var(--input-text)] appearance-none focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all cursor-pointer hover:bg-[var(--input-hover)] disabled:opacity-50"
-                                >
-                                    {loading ? (
-                                        <option>{t('order.loadingServices' as any)}</option>
-                                    ) : categories.length === 0 ? (
-                                        <option>{t('order.noServices' as any)}</option>
-                                    ) : (
-                                        categories.map(cat => (
-                                            <option key={cat} value={cat}>{cat} ({(groupedServices[cat] || []).length})</option>
-                                        ))
-                                    )}
-                                </select>
-                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                                    <i className="fa-solid fa-caret-down text-brand-accent"></i>
-                                </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2">
+                                {loading ? (
+                                    <div className="col-span-full py-4 text-center text-[var(--text-muted)] italic">
+                                        <i className="fa-solid fa-spinner fa-spin mr-2"></i> {t('order.loadingServices' as any)}
+                                    </div>
+                                ) : categories.length === 0 ? (
+                                    <div className="col-span-full py-4 text-center text-[var(--text-muted)] italic">
+                                        {t('order.noServices' as any)}
+                                    </div>
+                                ) : (
+                                    categories.map(cat => {
+                                        const isSelected = selectedCategory === cat;
+                                        // Mapping icons based on category name
+                                        let icon = 'fa-layer-group';
+                                        if (cat.includes('Like') || cat.includes('Reaction')) icon = 'fa-thumbs-up';
+                                        if (cat.includes('Comment')) icon = 'fa-comments';
+                                        if (cat.includes('Share')) icon = 'fa-share-nodes';
+                                        if (cat.includes('Follow') || cat.includes('Sub') || cat.includes('rss')) icon = 'fa-rss';
+                                        if (cat.includes('View') || cat.includes('Livestream')) icon = 'fa-eye';
+                                        if (cat.includes('Member') || cat.includes('Group')) icon = 'fa-users';
+                                        if (cat.includes('Page Like')) icon = 'fa-flag';
+
+                                        return (
+                                            <button
+                                                key={cat}
+                                                type="button"
+                                                onClick={() => handleCategoryChange(cat)}
+                                                className={`flex items-center gap-4 px-5 py-4 rounded-xl border transition-all duration-300 text-left group relative overflow-hidden ${
+                                                    isSelected 
+                                                    ? 'bg-brand-accent border-brand-accent text-brand-dark shadow-[0_0_15px_rgba(236,57,44,0.4)]' 
+                                                    : 'bg-[var(--input-bg)] border-[var(--input-border)] text-[var(--text-primary)] hover:border-brand-accent/50 hover:bg-[var(--input-hover)]'
+                                                }`}
+                                            >
+                                                {/* Icon Container */}
+                                                <div className={`w-10 h-10 shrink-0 flex items-center justify-center rounded-lg transition-colors ${
+                                                    isSelected ? 'bg-white/20' : 'bg-brand-accent/10 group-hover:bg-brand-accent/20'
+                                                }`}>
+                                                    <i className={`fa-solid ${icon} text-lg ${isSelected ? 'text-white' : 'text-brand-accent'}`}></i>
+                                                </div>
+                                                
+                                                {/* Label */}
+                                                <div className="flex flex-col">
+                                                    <span className={`text-sm font-bold tracking-tight leading-tight ${isSelected ? 'text-white' : ''}`}>
+                                                        {cat}
+                                                    </span>
+                                                    <span className={`text-[10px] opacity-70 ${isSelected ? 'text-white' : 'text-[var(--text-muted)]'}`}>
+                                                        {(groupedServices[cat] || []).length} dịch vụ
+                                                    </span>
+                                                </div>
+
+                                                {/* Selection Indicator */}
+                                                {isSelected && (
+                                                    <div className="absolute top-2 right-2">
+                                                        <i className="fa-solid fa-circle-check text-white/40 text-xs"></i>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Hover Shine Effect */}
+                                                {!isSelected && (
+                                                    <div className="absolute top-0 -left-[100%] w-1/2 h-full bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-[-20deg] group-hover:translate-x-[400%] transition-transform duration-1000"></div>
+                                                )}
+                                            </button>
+                                        );
+                                    })
+                                )}
                             </div>
                         </div>
 
