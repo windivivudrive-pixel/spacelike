@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { usePreferences } from '@/contexts/PreferencesContext';
 import { createClient } from '@/lib/supabase/client';
+import SuccessModal from '@/components/SuccessModal';
 
 const BANK_CONFIG = {
     BANK_ID: 'TPB',
@@ -19,6 +20,7 @@ export default function AddFundsPage() {
     const [paymentCode, setPaymentCode] = useState<string>('');
     const [userId, setUserId] = useState<string>('');
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     // Fetch user and profile
     useEffect(() => {
@@ -57,6 +59,7 @@ export default function AddFundsPage() {
                     const newTx = payload.new;
                     if (newTx.status === 'SUCCESS' && newTx.type === 'DEPOSIT') {
                         setSuccessMessage(t('addFunds.success' as any));
+                        setShowSuccessModal(true);
 
                         // Clear the message after 10 seconds
                         setTimeout(() => setSuccessMessage(null), 10000);
@@ -90,15 +93,6 @@ export default function AddFundsPage() {
                 <p className="text-[var(--text-secondary)]">{t('addFunds.description' as any)}</p>
             </div>
 
-            {successMessage && (
-                <div className="mb-6 bg-green-500/10 border border-green-500/30 text-green-400 px-6 py-4 rounded-xl flex items-start gap-4 animate-in fade-in slide-in-from-top-4">
-                    <i className="fa-solid fa-circle-check mt-1"></i>
-                    <div>
-                        <h4 className="font-bold">Transaction Confirmed!</h4>
-                        <p className="text-sm font-medium">{successMessage}</p>
-                    </div>
-                </div>
-            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Form */}
@@ -211,6 +205,13 @@ export default function AddFundsPage() {
                 </div>
 
             </div>
+            
+            <SuccessModal 
+                isOpen={showSuccessModal} 
+                onClose={() => setShowSuccessModal(false)} 
+                title="Giao dịch thành công"
+                message={successMessage || undefined} 
+            />
         </div>
     );
 }

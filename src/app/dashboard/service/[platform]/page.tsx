@@ -4,6 +4,7 @@ import { use, useState, useEffect, useMemo } from 'react';
 import { notFound } from 'next/navigation';
 import { usePreferences } from '@/contexts/PreferencesContext';
 import { createClient } from '@/lib/supabase/client';
+import SuccessModal from '@/components/SuccessModal';
 
 const platforms = [
     { id: 'youtube', name: 'Youtube', icon: 'fa-youtube', color: '#FF0000' },
@@ -37,6 +38,7 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
     const [note, setNote] = useState<string>('');
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     // Make sure we only render when we know the profile exists
     useEffect(() => {
@@ -155,6 +157,7 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
             }
 
             setMessage({ type: 'success', text: `${t('order.orderSuccess' as any)} (Order #${data.order_id})` });
+            setShowSuccessModal(true);
             setTargetLink('');
         } catch (err: any) {
             console.error(err);
@@ -460,6 +463,13 @@ export default function ServicePage({ params }: { params: Promise<{ platform: st
                     </form>
                 </div>
             </div>
+
+            <SuccessModal 
+                isOpen={showSuccessModal} 
+                onClose={() => setShowSuccessModal(false)} 
+                title="Đặt đơn thành công"
+                message={message?.type === 'success' ? message.text : undefined} 
+            />
         </div>
     );
 }

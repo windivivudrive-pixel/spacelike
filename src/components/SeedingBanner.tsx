@@ -20,7 +20,7 @@ export default function SeedingBanner() {
                         <div className="relative w-full max-w-md lg:max-w-lg lg:-ml-12 mx-auto lg:mx-0">
                             {/* iMac Image */}
                             <img
-                                src="/imac1.png"
+                                src="/imac .png"
                                 alt="iMac Desktop"
                                 className="w-full h-auto object-contain drop-shadow-2xl floating"
                             />
@@ -37,7 +37,7 @@ export default function SeedingBanner() {
                             <img src="/icon/comment.png" className="absolute -bottom-2 md:-bottom-6 left-2 md:left-6 w-5 md:w-14 h-auto floating opacity-90 z-30" style={{ animationDelay: '2.5s', animationDuration: '4.5s' }} alt="" />
                             <img src="/icon/share.png" className="absolute top-0 -right-2 w-4 md:w-11 h-auto floating-delayed opacity-85 z-30" style={{ animationDelay: '0.8s', animationDuration: '7s' }} alt="" />
                             <img src="/icon/view.png" className="absolute bottom-4 md:bottom-10 -right-4 md:-right-8 w-6 md:w-16 h-auto floating opacity-90 z-30" style={{ animationDelay: '3.2s', animationDuration: '5.5s' }} alt="" />
-                            
+
                             {/* Tiny accents - Hidden on very small screens */}
                             <img src="/icon/heart.png" className="hidden md:block absolute top-1/2 -left-20 w-6 h-auto floating opacity-60 z-30" style={{ animationDelay: '4s', animationDuration: '8s' }} alt="" />
                             <img src="/icon/like.png" className="hidden md:block absolute -top-20 right-28 w-12 h-auto floating-delayed opacity-60 z-30" style={{ animationDelay: '1.2s', animationDuration: '9s' }} alt="" />
