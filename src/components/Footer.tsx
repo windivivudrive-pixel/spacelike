@@ -32,8 +32,8 @@ export default function Footer() {
                             <p className="text-[var(--text-primary)] font-bold mb-4 font-display">THEO DÕI CHÚNG TÔI</p>
                             <div className="flex gap-4">
                                 <a href="#" className="w-12 h-12 rounded-full bg-[var(--service-item-bg)] flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:bg-[#1877F2] hover:-translate-y-1 transition-all"><i className="fa-brands fa-facebook-f text-lg"></i></a>
-                                <a href="#" className="w-12 h-12 rounded-full bg-[var(--service-item-bg)] flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:bg-[#0088cc] hover:-translate-y-1 transition-all"><i className="fa-brands fa-telegram text-lg"></i></a>
-                                <a href="#" className="w-12 h-12 rounded-full bg-[var(--service-item-bg)] flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:bg-[#1DA1F2] hover:-translate-y-1 transition-all"><i className="fa-brands fa-twitter text-lg"></i></a>
+                                <a href="#" className="w-12 h-12 rounded-full bg-[var(--service-item-bg)] flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:bg-[#E1306C] hover:-translate-y-1 transition-all"><i className="fa-brands fa-instagram text-lg"></i></a>
+                                <a href="#" className="w-12 h-12 rounded-full bg-[var(--service-item-bg)] flex items-center justify-center text-[var(--text-secondary)] hover:text-white hover:bg-black hover:-translate-y-1 transition-all"><i className="fa-brands fa-tiktok text-lg"></i></a>
                             </div>
                         </div>
                     </div>
