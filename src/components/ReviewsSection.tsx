@@ -47,18 +47,7 @@ const reviews = [
 ];
 
 export default function ReviewsSection() {
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
     const { theme } = usePreferences();
-
-    const scroll = (direction: 'left' | 'right') => {
-        if (scrollContainerRef.current) {
-            const scrollAmount = scrollContainerRef.current.offsetWidth / 3;
-            scrollContainerRef.current.scrollBy({
-                left: direction === 'left' ? -scrollAmount : scrollAmount,
-                behavior: 'smooth'
-            });
-        }
-    };
 
     return (
         <section className="py-24 relative z-10 bg-transparent overflow-hidden">
@@ -72,28 +61,18 @@ export default function ReviewsSection() {
                     </h2>
                 </div>
 
-                <div className="relative group px-12">
-                    {/* Left Scroll Button */}
-                    <button
-                        onClick={() => scroll('left')}
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full border border-brand-accent/30 bg-[var(--bg-glass-card)] text-brand-accent flex items-center justify-center z-20 hover:border-brand-accent hover:bg-brand-accent hover:text-white transition-all duration-300 md:opacity-0 group-hover:opacity-100 backdrop-blur-sm shadow-[0_0_15px_rgba(236,57,44,0.2)]"
-                    >
-                        <i className="fa-solid fa-arrow-left"></i>
-                    </button>
-
+                <div className="relative group overflow-hidden w-full py-4 relative z-10 before:absolute before:inset-y-0 before:left-0 before:w-16 md:before:w-32 before:bg-gradient-to-r before:from-[var(--bg-default)] before:to-transparent before:z-20 after:absolute after:inset-y-0 after:right-0 after:w-16 md:after:w-32 after:bg-gradient-to-l after:from-[var(--bg-default)] after:to-transparent after:z-20">
                     {/* Scrollable Container */}
                     <div
-                        ref={scrollContainerRef}
-                        className="flex overflow-x-auto gap-10 pb-12 pt-8 snap-x snap-mandatory scrollbar-hide items-center justify-start"
-                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                        className="flex gap-10 pb-12 pt-8 items-center justify-start animate-scroll-infinite w-max hover:[animation-play-state:paused]"
                     >
-                        {reviews.map((review) => (
+                        {[...reviews, ...reviews].map((review, index) => (
                             <div
-                                key={review.id}
-                                className="shrink-0 snap-center flex flex-col items-center w-full md:w-[calc(50%-20px)] lg:w-[calc(33.333%-28px)]"
+                                key={`${review.id}-${index}`}
+                                className="shrink-0 flex flex-col items-center w-[280px] md:w-[320px] lg:w-[350px]"
                             >
                                 {/* Planet Container */}
-                                <div className="relative w-[280px] h-[280px] md:w-[320px] md:h-[320px] group/planet">
+                                <div className="relative w-[280px] h-[280px] md:w-[320px] md:h-[320px] group/planet cursor-pointer">
 
                                     {/* Planet Body */}
                                     <div className="absolute inset-0 rounded-full overflow-hidden shadow-[0_0_20px_rgba(236,57,44,0.08)] transition-all duration-500">
@@ -143,21 +122,28 @@ export default function ReviewsSection() {
                             </div>
                         ))}
                     </div>
-
-                    {/* Right Scroll Button */}
-                    <button
-                        onClick={() => scroll('right')}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full border border-brand-accent/30 bg-[var(--bg-glass-card)] text-brand-accent flex items-center justify-center z-20 hover:border-brand-accent hover:bg-brand-accent hover:text-white transition-all duration-300 md:opacity-0 group-hover:opacity-100 backdrop-blur-sm shadow-[0_0_15px_rgba(236,57,44,0.2)]"
-                    >
-                        <i className="fa-solid fa-arrow-right"></i>
-                    </button>
                 </div>
             </div>
-            {/* Embedded CSS to hide scrollbar */}
+            {/* Embedded CSS to hide scrollbar and endless scroll */}
             <style dangerouslySetInnerHTML={{
                 __html: `
                 .scrollbar-hide::-webkit-scrollbar {
                     display: none;
+                }
+                @keyframes scroll-infinite {
+                    0% {
+                        transform: translateX(0);
+                    }
+                    100% {
+                        transform: translateX(calc(-50% - 20px)); /* 50% width + half of the gap space */
+                    }
+                }
+                .animate-scroll-infinite {
+                    animation: scroll-infinite 30s linear infinite;
+                }
+                /* Optional pause on hover */
+                .animate-scroll-infinite:hover {
+                    animation-play-state: paused;
                 }
             `}} />
         </section>
