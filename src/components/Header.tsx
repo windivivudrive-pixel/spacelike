@@ -9,6 +9,7 @@ import ThemeLogo from './ThemeLogo';
 
 export default function Header() {
     const [isLoginModalOpen, setLoginModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState<'login' | 'register'>('login');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isAvatarDropdownOpen, setIsAvatarDropdownOpen] = useState(false);
     const { theme, toggleTheme } = usePreferences();
@@ -210,13 +211,13 @@ export default function Header() {
                         ) : (
                             <>
                                 <button
-                                    onClick={() => setLoginModalOpen(true)}
+                                    onClick={() => { setModalMode('login'); setLoginModalOpen(true); }}
                                     className="hidden md:block text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium transition-colors"
                                 >
                                     Đăng nhập
                                 </button>
                                 <button
-                                    onClick={() => setLoginModalOpen(true)}
+                                    onClick={() => { setModalMode('register'); setLoginModalOpen(true); }}
                                     className="hidden md:inline-flex px-6 py-2.5 rounded-full border border-brand-accent text-brand-accent font-semibold hover:bg-brand-accent hover:text-white transition-all shadow-neon hover:shadow-neon-intense items-center"
                                 >
                                     Đăng ký <i className="fa-solid fa-arrow-right ml-1"></i>
@@ -275,13 +276,13 @@ export default function Header() {
                             ) : (
                                 <>
                                     <button
-                                        onClick={() => { setLoginModalOpen(true); setIsMobileMenuOpen(false); }}
+                                        onClick={() => { setModalMode('login'); setLoginModalOpen(true); setIsMobileMenuOpen(false); }}
                                         className="text-left py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium transition-colors border-b border-white/5 pb-2"
                                     >
                                         Đăng nhập
                                     </button>
                                     <button
-                                        onClick={() => { setLoginModalOpen(true); setIsMobileMenuOpen(false); }}
+                                        onClick={() => { setModalMode('register'); setLoginModalOpen(true); setIsMobileMenuOpen(false); }}
                                         className="text-center mt-2 px-6 py-2.5 rounded-full border border-brand-accent text-brand-accent font-semibold hover:bg-brand-accent hover:text-white transition-all shadow-neon"
                                     >
                                         Đăng ký
@@ -297,6 +298,7 @@ export default function Header() {
             <LoginModal
                 isOpen={isLoginModalOpen}
                 onClose={() => setLoginModalOpen(false)}
+                initialMode={modalMode}
             />
         </header>
     );

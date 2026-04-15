@@ -43,7 +43,7 @@ export default function DashboardHeader({ userName, initialBalance, userId, user
         };
     }, [userId, supabase]);
 
-    // Fetch provider balance if user is admin
+    // Fetch provider balance only for admin (not mod)
     useEffect(() => {
         if (userRole === 'admin') {
             const fetchProviderBalance = async () => {
@@ -174,8 +174,14 @@ export default function DashboardHeader({ userName, initialBalance, userId, user
                                 Admin
                             </span>
                         )}
+                        {userRole === 'mod' && (
+                            <span className="text-[10px] bg-purple-500/10 text-purple-400 px-1.5 py-0.5 rounded border border-purple-500/20 font-bold uppercase tracking-wider">
+                                Mod
+                            </span>
+                        )}
                     </div>
-                    {providerBalance !== null && (
+                    {/* Only admin sees provider balance (số dư gốc) */}
+                    {userRole === 'admin' && providerBalance !== null && (
                         <div className="mt-0.5">
                             <span className="text-[10px] bg-brand-accent/20 text-brand-accent px-2 py-0.5 rounded-full border border-brand-accent/40 font-medium">
                                 Gốc: {formatCurrency(providerBalance)}

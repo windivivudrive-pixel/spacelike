@@ -17,7 +17,7 @@ export default function DashboardNav({ userRole = 'member' }: { userRole?: strin
         { name: t('sidebar.addFunds'), href: '/dashboard/add-funds', icon: 'fa-credit-card', isHighlight: true },
     ];
 
-    const filteredTabs = tabs.filter(tab => !tab.adminOnly || userRole === 'admin');
+    const filteredTabs = tabs.filter(tab => !tab.adminOnly || userRole === 'admin' || userRole === 'mod');
 
     const socialLinks = [
         { id: 'facebook', name: 'Facebook', href: '/dashboard/service/facebook', icon: 'fa-facebook', color: '#1877F2' },

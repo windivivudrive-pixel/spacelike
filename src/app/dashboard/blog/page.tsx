@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import RichTextEditor from '@/components/blog/RichTextEditor';
+import SEOChecker from '@/components/blog/SEOChecker';
 
 interface BlogPost {
     id: string;
@@ -16,6 +18,9 @@ interface BlogPost {
     is_published: boolean;
     is_featured: boolean;
     view_count: number;
+    meta_title: string | null;
+    meta_description: string | null;
+    focus_keyword: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -38,6 +43,7 @@ export default function BlogAdminPage() {
     const [saving, setSaving] = useState(false);
     const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
     const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+    const [showSEO, setShowSEO] = useState(false);
 
     // Form state
     const [title, setTitle] = useState('');
@@ -48,6 +54,9 @@ export default function BlogAdminPage() {
     const [category, setCategory] = useState('Tin tức');
     const [isFeatured, setIsFeatured] = useState(false);
     const [isPublished, setIsPublished] = useState(false);
+    const [metaTitle, setMetaTitle] = useState('');
+    const [metaDescription, setMetaDescription] = useState('');
+    const [focusKeyword, setFocusKeyword] = useState('');
 
     const supabase = createClient();
 
@@ -73,7 +82,7 @@ export default function BlogAdminPage() {
             .eq('id', session.user.id)
             .single();
         
-        setIsAdmin(profile?.role === 'admin');
+        setIsAdmin(profile?.role === 'admin' || profile?.role === 'mod');
     }, [supabase]);
 
     useEffect(() => { 
@@ -84,7 +93,8 @@ export default function BlogAdminPage() {
     function resetForm() {
         setTitle(''); setExcerpt(''); setContent(''); setCoverImage('');
         setAuthorName('Admin'); setCategory('Tin tức'); setIsFeatured(false); setIsPublished(false);
-        setEditingPost(null);
+        setMetaTitle(''); setMetaDescription(''); setFocusKeyword('');
+        setEditingPost(null); setShowSEO(false);
     }
 
     function openCreate() {
@@ -102,8 +112,13 @@ export default function BlogAdminPage() {
         setCategory(post.category || 'Tin tức');
         setIsFeatured(post.is_featured);
         setIsPublished(post.is_published);
+        setMetaTitle(post.meta_title || '');
+        setMetaDescription(post.meta_description || '');
+        setFocusKeyword(post.focus_keyword || '');
         setShowEditor(true);
     }
+
+    const currentSlug = editingPost?.slug || slugify(title) + '-' + Date.now().toString(36);
 
     async function handleSave() {
         if (!title.trim()) return;
@@ -114,6 +129,9 @@ export default function BlogAdminPage() {
             title, slug, excerpt: excerpt || null, content: content || null,
             cover_image: coverImage || null, author_name: authorName,
             category, is_featured: isFeatured, is_published: isPublished,
+            meta_title: metaTitle || null,
+            meta_description: metaDescription || null,
+            focus_keyword: focusKeyword || null,
             updated_at: new Date().toISOString()
         };
 
@@ -168,89 +186,190 @@ export default function BlogAdminPage() {
                 </button>
             </div>
 
-            {/* Editor Modal */}
+            {/* Editor Modal — Full Screen */}
             {showEditor && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-[var(--border-color)] p-6 md:p-8" style={{ background: 'var(--bg-glass-card)' }}>
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-display font-bold text-[var(--text-primary)]">
-                                {editingPost ? 'Chỉnh sửa bài viết' : 'Tạo bài viết mới'}
-                            </h2>
-                            <button onClick={() => { setShowEditor(false); resetForm(); }} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
-                                <i className="fa-solid fa-xmark text-xl"></i>
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            {/* Title */}
-                            <div>
-                                <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">Tiêu đề *</label>
-                                <input value={title} onChange={e => setTitle(e.target.value)} className={inputClass} placeholder="Nhập tiêu đề bài viết..." />
-                            </div>
-
-                            {/* Excerpt */}
-                            <div>
-                                <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">Mô tả ngắn</label>
-                                <textarea value={excerpt} onChange={e => setExcerpt(e.target.value)} className={inputClass + ' resize-none'} rows={2} placeholder="Tóm tắt nội dung..." />
-                            </div>
-
-                            {/* Cover Image */}
-                            <div>
-                                <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">Ảnh bìa (URL)</label>
-                                <input value={coverImage} onChange={e => setCoverImage(e.target.value)} className={inputClass} placeholder="https://example.com/image.jpg" />
-                                {coverImage && (
-                                    <div className="mt-2 rounded-xl overflow-hidden border border-[var(--border-color)] h-40">
-                                        <img src={coverImage} alt="Preview" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
+                <div className="fixed inset-0 z-50 flex bg-black/60 backdrop-blur-sm">
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8" style={{ background: 'var(--bg-secondary, #0a0a0f)' }}>
+                            <div className="max-w-4xl mx-auto">
+                                {/* Top Bar */}
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-xl font-display font-bold text-[var(--text-primary)]">
+                                        {editingPost ? 'Chỉnh sửa bài viết' : 'Tạo bài viết mới'}
+                                    </h2>
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => { setShowEditor(false); resetForm(); }} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-2">
+                                            <i className="fa-solid fa-xmark text-xl"></i>
+                                        </button>
                                     </div>
-                                )}
-                            </div>
-
-                            {/* Category & Author */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">Danh mục</label>
-                                    <select value={category} onChange={e => setCategory(e.target.value)} className={inputClass}>
-                                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
                                 </div>
-                                <div>
-                                    <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">Tác giả</label>
-                                    <input value={authorName} onChange={e => setAuthorName(e.target.value)} className={inputClass} />
+
+                                <div className="space-y-5">
+                                    {/* Title */}
+                                    <div>
+                                        <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">Tiêu đề *</label>
+                                        <input value={title} onChange={e => setTitle(e.target.value)} className={inputClass + ' text-lg font-semibold'} placeholder="Nhập tiêu đề bài viết..." />
+                                    </div>
+
+                                    {/* Excerpt */}
+                                    <div>
+                                        <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">Mô tả ngắn</label>
+                                        <textarea value={excerpt} onChange={e => setExcerpt(e.target.value)} className={inputClass + ' resize-none'} rows={2} placeholder="Tóm tắt nội dung..." />
+                                    </div>
+
+                                    {/* Cover Image */}
+                                    <div>
+                                        <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">Ảnh bìa (URL)</label>
+                                        <input value={coverImage} onChange={e => setCoverImage(e.target.value)} className={inputClass} placeholder="https://example.com/image.jpg" />
+                                        {coverImage && (
+                                            <div className="mt-2 rounded-xl overflow-hidden border border-[var(--border-color)] h-40">
+                                                <img src={coverImage} alt="Preview" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Category & Author */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">Danh mục</label>
+                                            <select value={category} onChange={e => setCategory(e.target.value)} className={inputClass}>
+                                                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">Tác giả</label>
+                                            <input value={authorName} onChange={e => setAuthorName(e.target.value)} className={inputClass} />
+                                        </div>
+                                    </div>
+
+                                    {/* Rich Text Editor */}
+                                    <div>
+                                        <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">
+                                            Nội dung
+                                        </label>
+                                        <RichTextEditor
+                                            content={content}
+                                            onChange={setContent}
+                                            placeholder="Bắt đầu viết bài viết..."
+                                        />
+                                    </div>
+
+                                    {/* SEO Fields */}
+                                    <div className="rounded-xl border border-[var(--border-color)] p-5 space-y-4" style={{ background: 'var(--bg-glass-card)' }}>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <i className="fa-solid fa-magnifying-glass text-brand-accent text-sm"></i>
+                                            <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-wider">SEO Settings</h3>
+                                        </div>
+
+                                        <div>
+                                            <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">
+                                                Focus Keyword
+                                            </label>
+                                            <input
+                                                value={focusKeyword}
+                                                onChange={e => setFocusKeyword(e.target.value)}
+                                                className={inputClass}
+                                                placeholder="Từ khóa chính, vd: mua like facebook"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">
+                                                Meta Title
+                                                <span className="font-normal text-[var(--text-muted)] ml-2">
+                                                    {metaTitle.length}/60
+                                                </span>
+                                            </label>
+                                            <input
+                                                value={metaTitle}
+                                                onChange={e => setMetaTitle(e.target.value)}
+                                                className={inputClass}
+                                                placeholder="Tiêu đề SEO (để trống sẽ dùng tiêu đề bài viết)"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">
+                                                Meta Description
+                                                <span className="font-normal text-[var(--text-muted)] ml-2">
+                                                    {metaDescription.length}/160
+                                                </span>
+                                            </label>
+                                            <textarea
+                                                value={metaDescription}
+                                                onChange={e => setMetaDescription(e.target.value)}
+                                                className={inputClass + ' resize-none'}
+                                                rows={3}
+                                                placeholder="Mô tả SEO hiển thị trên Google..."
+                                            />
+                                        </div>
+
+                                        {/* Google Preview */}
+                                        <div className="rounded-lg bg-white/5 border border-[var(--border-color)] p-4">
+                                            <p className="text-xs text-[var(--text-muted)] mb-2 uppercase tracking-wider font-medium">Xem trước Google</p>
+                                            <div className="space-y-1">
+                                                <p className="text-[#8ab4f8] text-base leading-snug truncate">
+                                                    {metaTitle || title || 'Tiêu đề bài viết'}
+                                                </p>
+                                                <p className="text-[#bdc1c6] text-xs truncate">
+                                                    spacelike.vn/blog/{editingPost?.slug || slugify(title || 'url-bai-viet')}
+                                                </p>
+                                                <p className="text-[#9aa0a6] text-sm leading-relaxed line-clamp-2">
+                                                    {metaDescription || excerpt || 'Mô tả bài viết sẽ hiển thị ở đây...'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Toggles */}
+                                    <div className="flex items-center gap-6 pt-2">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input type="checkbox" checked={isPublished} onChange={e => setIsPublished(e.target.checked)} className="accent-brand-accent w-4 h-4" />
+                                            <span className="text-sm font-medium text-[var(--text-primary)]">Xuất bản</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} className="accent-brand-accent w-4 h-4" />
+                                            <span className="text-sm font-medium text-[var(--text-primary)]">Nổi bật</span>
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Content */}
-                            <div>
-                                <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">Nội dung (HTML)</label>
-                                <textarea value={content} onChange={e => setContent(e.target.value)} className={inputClass + ' resize-none font-mono text-sm'} rows={12} placeholder="<p>Viết nội dung bài viết ở đây...</p>" />
-                            </div>
-
-                            {/* Toggles */}
-                            <div className="flex items-center gap-6 pt-2">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" checked={isPublished} onChange={e => setIsPublished(e.target.checked)} className="accent-brand-accent w-4 h-4" />
-                                    <span className="text-sm font-medium text-[var(--text-primary)]">Xuất bản</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} className="accent-brand-accent w-4 h-4" />
-                                    <span className="text-sm font-medium text-[var(--text-primary)]">Nổi bật</span>
-                                </label>
+                                {/* Actions */}
+                                <div className="flex items-center justify-end gap-3 mt-6 pt-6 border-t border-[var(--border-color)]">
+                                    <button onClick={() => { setShowEditor(false); resetForm(); }} className="px-5 py-2.5 rounded-xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium transition-colors">
+                                        Hủy
+                                    </button>
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={saving || !title.trim()}
+                                        className="flex items-center gap-2 bg-brand-accent text-white px-6 py-2.5 rounded-xl font-bold hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {saving ? <><i className="fa-solid fa-circle-notch fa-spin"></i> Đang lưu...</> : <><i className="fa-solid fa-check"></i> {editingPost ? 'Cập nhật' : 'Tạo bài viết'}</>}
+                                    </button>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Actions */}
-                        <div className="flex items-center justify-end gap-3 mt-6 pt-6 border-t border-[var(--border-color)]">
-                            <button onClick={() => { setShowEditor(false); resetForm(); }} className="px-5 py-2.5 rounded-xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium transition-colors">
-                                Hủy
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                disabled={saving || !title.trim()}
-                                className="flex items-center gap-2 bg-brand-accent text-white px-6 py-2.5 rounded-xl font-bold hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {saving ? <><i className="fa-solid fa-circle-notch fa-spin"></i> Đang lưu...</> : <><i className="fa-solid fa-check"></i> {editingPost ? 'Cập nhật' : 'Tạo bài viết'}</>}
-                            </button>
+                    {/* SEO Checker Side Panel (Always visible on right) */}
+                    <div
+                        className="w-full max-w-sm border-l border-[var(--border-color)] overflow-y-auto p-5 hidden lg:block"
+                        style={{ background: 'var(--bg-secondary, #0a0a0f)' }}
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-display font-bold text-[var(--text-primary)] flex items-center gap-2">
+                                <i className="fa-solid fa-magnifying-glass-chart text-brand-accent"></i>
+                                Phân tích SEO
+                            </h3>
                         </div>
+                        <SEOChecker
+                            title={title}
+                            metaTitle={metaTitle}
+                            metaDescription={metaDescription}
+                            focusKeyword={focusKeyword}
+                            content={content}
+                            slug={currentSlug}
+                        />
                     </div>
                 </div>
             )}

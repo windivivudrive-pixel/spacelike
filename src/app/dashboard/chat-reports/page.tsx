@@ -32,7 +32,7 @@ export default function ChatReportsPage() {
             .eq('id', session.user.id)
             .single();
         
-        setIsAdmin(profile?.role === 'admin');
+        setIsAdmin(profile?.role === 'admin' || profile?.role === 'mod');
     }, [supabase]);
 
     const fetchReports = useCallback(async () => {

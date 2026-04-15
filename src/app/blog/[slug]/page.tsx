@@ -36,12 +36,15 @@ export async function generateMetadata(
     const previousImages = (await parent).openGraph?.images || [];
     const siteName = 'Space Like Blog';
 
+    const seoTitle = post.meta_title || post.title;
+    const seoDescription = post.meta_description || post.excerpt || post.title;
+
     return {
-        title: `${post.title} - ${siteName}`,
-        description: post.excerpt || post.title,
+        title: `${seoTitle} - ${siteName}`,
+        description: seoDescription,
         openGraph: {
-            title: post.title,
-            description: post.excerpt || post.title,
+            title: seoTitle,
+            description: seoDescription,
             url: `https://spacelike.vn/blog/${post.slug}`,
             siteName: siteName,
             images: post.cover_image ? [post.cover_image, ...previousImages] : previousImages,

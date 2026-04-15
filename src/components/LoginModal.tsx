@@ -7,11 +7,12 @@ import { createClient } from '@/lib/supabase/client';
 interface LoginModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialMode?: 'login' | 'register';
 }
 
-export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
+export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModalProps) {
     const [mounted, setMounted] = useState(false);
-    const [isRegisterMode, setIsRegisterMode] = useState(false);
+    const [isRegisterMode, setIsRegisterMode] = useState(initialMode === 'register');
 
     // Form States
     const [email, setEmail] = useState('');
@@ -25,6 +26,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     const [loadingAuth, setLoadingAuth] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
+
+    // Availability States
+    const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+    const [emailStatus, setEmailStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
 
     const supabase = createClient();
 
@@ -78,6 +83,16 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             }
             if (password.length < 6) {
                 setErrorMsg('Mật khẩu phải có ít nhất 6 ký tự.');
+                return;
+            }
+
+            if (usernameStatus === 'taken') {
+                setErrorMsg('Tên tài khoản đã tồn tại. Vui lòng chọn tên khác.');
+                return;
+            }
+
+            if (emailStatus === 'taken') {
+                setErrorMsg('Email này đã được đăng ký.');
                 return;
             }
 
@@ -163,6 +178,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         setPhone('');
         setErrorMsg('');
         setSuccessMsg('');
+        setUsernameStatus('idle');
+        setEmailStatus('idle');
     };
 
     const toggleMode = () => {
@@ -174,18 +191,74 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         setMounted(true);
     }, []);
 
+    // Check Username Availability
+    useEffect(() => {
+        if (!isRegisterMode || !username || username.trim().length < 3) {
+            setUsernameStatus('idle');
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            setUsernameStatus('checking');
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('username')
+                    .eq('username', username.trim())
+                    .maybeSingle();
+
+                if (error) throw error;
+                setUsernameStatus(data ? 'taken' : 'available');
+            } catch (err) {
+                console.error('Error checking username:', err);
+                setUsernameStatus('idle');
+            }
+        }, 600);
+
+        return () => clearTimeout(timer);
+    }, [username, isRegisterMode, supabase]);
+
+    // Check Email Availability
+    useEffect(() => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!isRegisterMode || !email || !emailRegex.test(email)) {
+            setEmailStatus('idle');
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            setEmailStatus('checking');
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('email')
+                    .eq('email', email.trim())
+                    .maybeSingle();
+
+                if (error) throw error;
+                setEmailStatus(data ? 'taken' : 'available');
+            } catch (err) {
+                console.error('Error checking email:', err);
+                setEmailStatus('idle');
+            }
+        }, 600);
+
+        return () => clearTimeout(timer);
+    }, [email, isRegisterMode, supabase]);
+
     // Prevent scrolling when modal is open
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
             resetForm(); // reset form when opening
+            setIsRegisterMode(initialMode === 'register'); // Sync mode on open
         } else {
             document.body.style.overflow = 'unset';
         }
         return () => {
             document.body.style.overflow = 'unset';
         };
-    }, [isOpen]);
+    }, [isOpen, initialMode]);
 
     if (!isOpen || !mounted) return null;
 
@@ -290,10 +363,17 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                         type="text"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
-                                        className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600"
+                                        className={`w-full bg-black/50 border ${usernameStatus === 'taken' ? 'border-red-500/50' : usernameStatus === 'available' ? 'border-emerald-500/50' : 'border-white/10'} rounded-xl pl-10 pr-10 py-3 text-sm focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600`}
                                         placeholder="Username"
                                     />
+                                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        {usernameStatus === 'checking' && <i className="fa-solid fa-circle-notch fa-spin text-gray-500 text-xs"></i>}
+                                        {usernameStatus === 'available' && <i className="fa-solid fa-circle-check text-emerald-500 text-xs"></i>}
+                                        {usernameStatus === 'taken' && <i className="fa-solid fa-circle-xmark text-red-500 text-xs"></i>}
+                                    </div>
                                 </div>
+                                {usernameStatus === 'taken' && <p className="text-[10px] text-red-500 ml-1">Tên tài khoản đã tồn tại</p>}
+                                {usernameStatus === 'available' && <p className="text-[10px] text-emerald-500 ml-1">Tên tài khoản khả dụng</p>}
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-sm font-medium text-gray-300">Số điện thoại</label>
@@ -325,10 +405,18 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                 type={!isRegisterMode ? "text" : "email"}
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600"
+                                className={`w-full bg-black/50 border ${isRegisterMode && emailStatus === 'taken' ? 'border-red-500/50' : isRegisterMode && emailStatus === 'available' ? 'border-emerald-500/50' : 'border-white/10'} rounded-xl pl-10 pr-10 py-3 text-sm focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600`}
                                 placeholder={!isRegisterMode ? "Email hoặc Username" : "name@example.com"}
                             />
+                            {isRegisterMode && (
+                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    {emailStatus === 'checking' && <i className="fa-solid fa-circle-notch fa-spin text-gray-500 text-xs"></i>}
+                                    {emailStatus === 'available' && <i className="fa-solid fa-circle-check text-emerald-500 text-xs"></i>}
+                                    {emailStatus === 'taken' && <i className="fa-solid fa-circle-xmark text-red-500 text-xs"></i>}
+                                </div>
+                            )}
                         </div>
+                        {isRegisterMode && emailStatus === 'taken' && <p className="text-[10px] text-red-500 ml-1 mt-1">Email này đã được đăng ký</p>}
                     </div>
 
                     <div className="space-y-1.5">
