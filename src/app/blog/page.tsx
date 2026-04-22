@@ -40,11 +40,21 @@ export default async function BlogPage() {
         .order('created_at', { ascending: false });
 
     const posts: BlogPost[] = postsData || [];
+    
+    // Logic chọn bài: Ưu tiên bài is_featured mới nhất làm bài chính đầu tiên
+    const featuredIndex = posts.findIndex(p => p.is_featured);
+    const featuredPost = featuredIndex !== -1 ? posts[featuredIndex] : null;
+    
+    // Tạo danh sách bài viết đã được sắp xếp với bài featured lên đầu (nếu có)
+    const sortedPosts = featuredPost 
+        ? [featuredPost, ...posts.filter(p => p.id !== featuredPost.id)]
+        : posts;
 
-    const featured = posts.find((p) => p.is_featured) || posts[0];
-    const secondary = posts.find((p) => p !== featured) || null;
-    const sidebarPosts = posts.filter((p) => p !== featured && p !== secondary).slice(0, 7);
-    const remainingPosts = posts.filter((p) => p !== featured && p !== secondary && !sidebarPosts.includes(p));
+    const heroMain = sortedPosts[0] || null;
+    const heroSide = sortedPosts[1] || null;
+    const heroGrid = sortedPosts.slice(2, 5);
+    const sidebarPosts = sortedPosts.slice(5, 13);
+    const remainingPosts = sortedPosts.slice(13);
 
     function formatDate(dateStr: string) {
         return new Date(dateStr).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -72,80 +82,98 @@ export default async function BlogPage() {
                         </div>
                     ) : (
                         <>
-                            {/* Hero Grid: Featured + Secondary + Sidebar */}
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-10">
-
-                                {/* Featured Post - Large */}
-                                {featured && (
-                                    <Link href={`/blog/${featured.slug}`} className="lg:col-span-5 group">
-                                        <div className="relative rounded-2xl overflow-hidden h-full min-h-[380px] border border-[var(--border-color)] hover:border-brand-accent/40 transition-all duration-300">
-                                            <div className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                                                style={{ backgroundImage: featured.cover_image ? `url(${featured.cover_image})` : 'linear-gradient(135deg, #1a1a2e, #16213e)' }}
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-                                            <div className="absolute bottom-0 left-0 right-0 p-6">
-                                                {featured.category && (
-                                                    <span className="inline-block px-3 py-1 rounded-full bg-brand-accent text-white text-xs font-bold uppercase tracking-wider mb-3">
-                                                        {featured.category}
-                                                    </span>
-                                                )}
-                                                <h2 className="text-2xl md:text-3xl font-display font-bold text-white leading-tight mb-2 group-hover:text-brand-accent transition-colors">
-                                                    {featured.title}
-                                                </h2>
-                                                <div className="flex items-center gap-2 text-sm text-gray-300">
-                                                    <span>{featured.author_name}</span>
-                                                </div>
+                            {/* Hero + Sidebar Section */}
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-16">
+                                {/* Left Content: 5 Hero Posts (9/12) */}
+                                <div className="lg:col-span-9 flex flex-col gap-12">
+                                    {/* Row 1: 2 Posts (8:4) */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                                        {heroMain && (
+                                            <div className="lg:col-span-8">
+                                                <Link href={`/blog/${heroMain.slug}`} className="group block">
+                                                    <div className="rounded-2xl overflow-hidden aspect-[3/2] w-full mb-5 border border-[var(--border-color)]">
+                                                        <img src={heroMain.cover_image || ''} alt={heroMain.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                    </div>
+                                                    <h2 className="text-2xl md:text-3xl font-display font-bold text-[var(--text-primary)] leading-tight mb-3 group-hover:text-brand-accent transition-colors">
+                                                        {heroMain.title}
+                                                    </h2>
+                                                    <p className="text-sm text-[var(--text-muted)] font-medium">
+                                                        {heroMain.author_name}
+                                                    </p>
+                                                </Link>
                                             </div>
-                                        </div>
-                                    </Link>
-                                )}
+                                        )}
 
-                                {/* Secondary Post - Medium with excerpt */}
-                                {secondary && (
-                                    <div className="lg:col-span-4 flex flex-col gap-5">
-                                        <Link href={`/blog/${secondary.slug}`} className="group flex-1">
-                                            <div className="rounded-2xl overflow-hidden border border-[var(--border-color)] hover:border-brand-accent/40 transition-all duration-300 h-full flex flex-col" style={{ background: 'var(--bg-glass-card)' }}>
-                                                {secondary.cover_image && (
-                                                    <div className="h-48 overflow-hidden">
-                                                        <img src={secondary.cover_image} alt={secondary.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                        {heroSide && (
+                                            <div className="lg:col-span-4">
+                                                <Link href={`/blog/${heroSide.slug}`} className="group block">
+                                                    <div className="rounded-2xl overflow-hidden aspect-[3/2] w-full mb-5 border border-[var(--border-color)]">
+                                                        <img src={heroSide.cover_image || ''} alt={heroSide.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                                     </div>
-                                                )}
-                                                <div className="p-5 flex-1 flex flex-col">
-                                                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2 group-hover:text-brand-accent transition-colors leading-snug">
-                                                        {secondary.title}
+                                                    <h3 className="text-xl font-bold text-[var(--text-primary)] leading-snug mb-3 group-hover:text-brand-accent transition-colors">
+                                                        {heroSide.title}
                                                     </h3>
-                                                    <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] mb-3">
-                                                        <span>{secondary.author_name}</span>
-                                                    </div>
-                                                    {secondary.excerpt && (
-                                                        <p className="text-sm text-[var(--text-secondary)] line-clamp-4 leading-relaxed flex-1">
-                                                            {secondary.excerpt}
+                                                    <p className="text-sm text-[var(--text-muted)] font-medium mb-3">
+                                                        {heroSide.author_name}
+                                                    </p>
+                                                    {heroSide.excerpt && (
+                                                        <p className="text-sm text-[var(--text-secondary)] line-clamp-5 leading-relaxed">
+                                                            {heroSide.excerpt}
                                                         </p>
                                                     )}
-                                                </div>
+                                                </Link>
                                             </div>
-                                        </Link>
+                                        )}
                                     </div>
-                                )}
 
-                                {/* Sidebar - Quick View */}
+                                    {/* Row 2: 3 Posts (Equal) */}
+                                    {heroGrid.length > 0 && (
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                            {heroGrid.map(post => (
+                                                <Link key={post.id} href={`/blog/${post.slug}`} className="group block">
+                                                    <div className="rounded-xl overflow-hidden aspect-[3/2] w-full mb-4 border border-[var(--border-color)]">
+                                                        <img src={post.cover_image || ''} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                    </div>
+                                                    <h4 className="text-lg font-bold text-[var(--text-primary)] leading-snug mb-2 group-hover:text-brand-accent transition-colors line-clamp-2">
+                                                        {post.title}
+                                                    </h4>
+                                                    <p className="text-xs text-[var(--text-muted)] font-medium">
+                                                        {post.author_name}
+                                                    </p>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Right Content: Timeline Sidebar (3/12) */}
                                 {sidebarPosts.length > 0 && (
                                     <div className="lg:col-span-3">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h3 className="font-display font-bold text-[var(--text-primary)] text-lg">Xem nhanh</h3>
-                                            <span className="text-brand-accent text-sm font-medium cursor-pointer hover:underline">Xem tất cả</span>
+                                        <div className="flex items-center justify-between mb-8">
+                                            <h3 className="font-display font-bold text-[var(--text-primary)] text-xl">Xem nhanh</h3>
+                                            <Link href="/blog" className="text-brand-accent text-sm font-bold hover:underline">Xem tất cả</Link>
                                         </div>
-                                        <div className="flex flex-col gap-3">
+                                        
+                                        <div className="flex flex-col gap-8 relative pl-6">
+                                            {/* Vertical line with dots */}
+                                            <div className="absolute left-[7px] top-2 bottom-2 w-[1px] border-l border-dashed border-brand-accent/40"></div>
+                                            
                                             {sidebarPosts.map(post => (
-                                                <Link key={post.id} href={`/blog/${post.slug}`} className="group flex items-start gap-3">
+                                                <Link key={post.id} href={`/blog/${post.slug}`} className="group flex items-start gap-4 relative">
+                                                    {/* Blue Dot */}
+                                                    <div className="absolute -left-[23px] top-[10px] w-2.5 h-2.5 rounded-full bg-brand-accent border-2 border-[var(--bg-card)] group-hover:scale-125 transition-transform"></div>
+                                                    
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-bold text-[var(--text-primary)] line-clamp-3 group-hover:text-brand-accent transition-colors leading-snug mb-1">
+                                                            {post.title}
+                                                        </p>
+                                                    </div>
+                                                    
                                                     {post.cover_image && (
-                                                        <div className="w-20 h-14 rounded-lg overflow-hidden shrink-0 border border-[var(--border-color)]">
+                                                        <div className="w-24 aspect-[3/2] rounded-lg overflow-hidden border border-[var(--border-color)] shrink-0">
                                                             <img src={post.cover_image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                                                         </div>
                                                     )}
-                                                    <p className="text-sm font-medium text-[var(--text-primary)] line-clamp-2 group-hover:text-brand-accent transition-colors leading-snug">
-                                                        {post.title}
-                                                    </p>
                                                 </Link>
                                             ))}
                                         </div>
@@ -162,7 +190,7 @@ export default async function BlogPage() {
                                             <Link key={post.id} href={`/blog/${post.slug}`} className="group">
                                                 <div className="flex gap-5 rounded-2xl border border-[var(--border-color)] hover:border-brand-accent/40 transition-all duration-300 overflow-hidden" style={{ background: 'var(--bg-glass-card)' }}>
                                                     {post.cover_image && (
-                                                        <div className="w-48 md:w-64 shrink-0 overflow-hidden">
+                                                        <div className="w-48 md:w-64 aspect-[3/2] shrink-0 overflow-hidden">
                                                             <img src={post.cover_image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                                         </div>
                                                     )}

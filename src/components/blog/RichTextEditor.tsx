@@ -12,17 +12,19 @@ interface RichTextEditorProps {
     content: string;
     onChange: (html: string) => void;
     placeholder?: string;
+    onImageUpload?: (file: File) => Promise<string | null>;
 }
 
 interface ToolbarButtonProps {
     onClick: () => void;
     isActive?: boolean;
-    icon: string;
+    icon?: string;
+    label?: string;
     title: string;
     disabled?: boolean;
 }
 
-function ToolbarButton({ onClick, isActive, icon, title, disabled }: ToolbarButtonProps) {
+function ToolbarButton({ onClick, isActive, icon, label, title, disabled }: ToolbarButtonProps) {
     return (
         <button
             type="button"
@@ -30,7 +32,7 @@ function ToolbarButton({ onClick, isActive, icon, title, disabled }: ToolbarButt
             disabled={disabled}
             title={title}
             className={`
-                w-8 h-8 flex items-center justify-center rounded-lg text-sm transition-all
+                w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-all
                 ${isActive
                     ? 'bg-brand-accent text-white shadow-[0_0_10px_rgba(236,57,44,0.3)]'
                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--input-bg)]'
@@ -38,7 +40,7 @@ function ToolbarButton({ onClick, isActive, icon, title, disabled }: ToolbarButt
                 ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
             `}
         >
-            <i className={icon}></i>
+            {icon ? <i className={icon}></i> : <span>{label}</span>}
         </button>
     );
 }
@@ -47,11 +49,11 @@ function ToolbarDivider() {
     return <div className="w-px h-5 bg-[var(--border-color)] mx-1" />;
 }
 
-export default function RichTextEditor({ content, onChange, placeholder }: RichTextEditorProps) {
+export default function RichTextEditor({ content, onChange, placeholder, onImageUpload }: RichTextEditorProps) {
     const editor = useEditor({
         extensions: [
             StarterKit.configure({
-                heading: { levels: [2, 3, 4] },
+                heading: { levels: [1, 2, 3, 4, 5, 6] },
             }),
             Underline,
             Image.configure({
@@ -76,7 +78,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
         content: content || '',
         editorProps: {
             attributes: {
-                class: 'prose prose-lg max-w-none min-h-[320px] p-5 focus:outline-none text-[var(--text-primary)] prose-headings:text-[var(--text-primary)] prose-headings:font-display prose-p:text-[var(--text-secondary)] prose-p:leading-relaxed prose-a:text-brand-accent prose-strong:text-[var(--text-primary)] prose-blockquote:border-brand-accent prose-blockquote:text-[var(--text-secondary)] prose-code:text-brand-accent prose-code:bg-[var(--input-bg)] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-ul:text-[var(--text-secondary)] prose-ol:text-[var(--text-secondary)] prose-li:text-[var(--text-secondary)]',
+                class: 'custom-prose max-w-none min-h-[320px] p-5 focus:outline-none text-[var(--text-primary)]',
             },
         },
         immediatelyRender: false,
@@ -96,11 +98,33 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
 
     const addImage = useCallback(() => {
         if (!editor) return;
-        const url = window.prompt('Nhập URL hình ảnh:');
-        if (url) {
-            editor.chain().focus().setImage({ src: url }).run();
+
+        if (onImageUpload) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async () => {
+                const file = input.files?.[0];
+                if (file) {
+                    try {
+                        const url = await onImageUpload(file);
+                        if (url) {
+                            editor.chain().focus().setImage({ src: url }).run();
+                        }
+                    } catch (err) {
+                        console.error('Image upload failed', err);
+                        alert('Lỗi tải ảnh lên.');
+                    }
+                }
+            };
+            input.click();
+        } else {
+            const url = window.prompt('Nhập URL hình ảnh:');
+            if (url) {
+                editor.chain().focus().setImage({ src: url }).run();
+            }
         }
-    }, [editor]);
+    }, [editor, onImageUpload]);
 
     const addLink = useCallback(() => {
         if (!editor) return;
@@ -159,17 +183,30 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
 
                 {/* Headings */}
                 <ToolbarButton
+                    onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                    isActive={editor.isActive('heading', { level: 1 })}
+                    label="H1"
+                    title="Heading 1"
+                />
+                <ToolbarButton
                     onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
                     isActive={editor.isActive('heading', { level: 2 })}
-                    icon="fa-solid fa-heading"
+                    label="H2"
                     title="Heading 2"
                 />
                 <ToolbarButton
                     onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
                     isActive={editor.isActive('heading', { level: 3 })}
-                    icon="fa-solid fa-h"
+                    label="H3"
                     title="Heading 3"
                 />
+                <ToolbarButton
+                    onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
+                    isActive={editor.isActive('heading', { level: 4 })}
+                    label="H4"
+                    title="Heading 4"
+                />
+
 
                 <ToolbarDivider />
 

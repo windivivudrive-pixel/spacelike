@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import RichTextEditor from '@/components/blog/RichTextEditor';
 import SEOChecker from '@/components/blog/SEOChecker';
+import { compressImage } from '@/lib/utils/imageCompression';
 
 interface BlogPost {
     id: string;
@@ -44,6 +45,7 @@ export default function BlogAdminPage() {
     const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
     const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
     const [showSEO, setShowSEO] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     // Form state
     const [title, setTitle] = useState('');
@@ -81,13 +83,13 @@ export default function BlogAdminPage() {
             .select('role')
             .eq('id', session.user.id)
             .single();
-        
+
         setIsAdmin(profile?.role === 'admin' || profile?.role === 'mod');
     }, [supabase]);
 
-    useEffect(() => { 
+    useEffect(() => {
         checkAdmin();
-        fetchPosts(); 
+        fetchPosts();
     }, [checkAdmin, fetchPosts]);
 
     function resetForm() {
@@ -119,6 +121,68 @@ export default function BlogAdminPage() {
     }
 
     const currentSlug = editingPost?.slug || slugify(title) + '-' + Date.now().toString(36);
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Check if file is image
+        if (!file.type.startsWith('image/')) {
+            alert('Vui lòng chọn tệp hình ảnh.');
+            return;
+        }
+
+        // Limit size to 5MB
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Kích thước ảnh tối đa là 5MB.');
+            return;
+        }
+
+        try {
+            setUploading(true);
+            const compressedFile = await compressImage(file, 2);
+
+            const fileExt = compressedFile.name.split('.').pop() || 'jpg';
+            const fileName = `thumbnail-${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+            const filePath = `blog/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('spacelike-bucket')
+                .upload(filePath, compressedFile);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('spacelike-bucket')
+                .getPublicUrl(filePath);
+
+            setCoverImage(publicUrl);
+        } catch (error: any) {
+            console.error('Upload error:', error);
+            alert('Lỗi upload: ' + error.message);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const uploadImageForEditor = async (file: File) => {
+        const compressedFile = await compressImage(file, 2);
+        const fileExt = compressedFile.name.split('.').pop() || 'jpg';
+        const fileName = `editor-${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+        const filePath = `blog/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('spacelike-bucket')
+            .upload(filePath, compressedFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('spacelike-bucket')
+            .getPublicUrl(filePath);
+
+        return publicUrl;
+    };
 
     async function handleSave() {
         if (!title.trim()) return;
@@ -219,13 +283,42 @@ export default function BlogAdminPage() {
 
                                     {/* Cover Image */}
                                     <div>
-                                        <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">Ảnh bìa (URL)</label>
-                                        <input value={coverImage} onChange={e => setCoverImage(e.target.value)} className={inputClass} placeholder="https://example.com/image.jpg" />
-                                        {coverImage && (
-                                            <div className="mt-2 rounded-xl overflow-hidden border border-[var(--border-color)] h-40">
-                                                <img src={coverImage} alt="Preview" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
+                                        <label className="text-sm font-semibold text-[var(--text-secondary)] block mb-1.5">Ảnh bìa (Tỉ lệ 3:2)</label>
+                                        <div className="flex flex-col gap-3">
+                                            <div className="flex gap-2">
+                                                <input value={coverImage} onChange={e => setCoverImage(e.target.value)} className={inputClass} placeholder="https://example.com/image.jpg" />
+                                                <label className={`shrink-0 flex items-center justify-center w-12 h-12 rounded-xl border-2 border-dashed border-[var(--border-color)] bg-[var(--input-bg)] text-[var(--text-secondary)] hover:text-brand-accent hover:border-brand-accent transition-all cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                                    <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                                                    {uploading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-cloud-arrow-up"></i>}
+                                                </label>
                                             </div>
-                                        )}
+
+                                            {coverImage && (
+                                                <div className="relative rounded-xl overflow-hidden border border-[var(--border-color)] aspect-[3/2] w-full bg-black/20 group">
+                                                    <img src={coverImage} alt="Preview" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
+                                                    <button
+                                                        onClick={() => setCoverImage('')}
+                                                        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                                                    >
+                                                        <i className="fa-solid fa-xmark"></i>
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {!coverImage && !uploading && (
+                                                <div
+                                                    onClick={() => document.getElementById('thumbnail-upload')?.click()}
+                                                    className="rounded-xl border-2 border-dashed border-[var(--border-color)] p-8 flex flex-col items-center justify-center gap-2 hover:border-brand-accent hover:bg-white/5 transition-all cursor-pointer group"
+                                                >
+                                                    <input type="file" id="thumbnail-upload" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                                                    <div className="w-12 h-12 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center text-[var(--text-muted)] group-hover:text-brand-accent transition-colors">
+                                                        <i className="fa-solid fa-image text-xl"></i>
+                                                    </div>
+                                                    <p className="text-sm font-medium text-[var(--text-secondary)]">Nhấp để tải lên hoặc kéo thả ảnh</p>
+                                                    <p className="text-xs text-[var(--text-muted)]">Hỗ trợ PNG, JPG, WebP tối đa 5MB</p>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* Category & Author */}
@@ -251,6 +344,7 @@ export default function BlogAdminPage() {
                                             content={content}
                                             onChange={setContent}
                                             placeholder="Bắt đầu viết bài viết..."
+                                            onImageUpload={uploadImageForEditor}
                                         />
                                     </div>
 

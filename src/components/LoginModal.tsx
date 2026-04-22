@@ -13,6 +13,7 @@ interface LoginModalProps {
 export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModalProps) {
     const [mounted, setMounted] = useState(false);
     const [isRegisterMode, setIsRegisterMode] = useState(initialMode === 'register');
+    const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false);
 
     // Form States
     const [email, setEmail] = useState('');
@@ -55,6 +56,34 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
         e.preventDefault();
         setErrorMsg('');
         setSuccessMsg('');
+
+        if (isForgotPasswordMode) {
+            if (!email) {
+                setErrorMsg('Vui lòng nhập Email để khôi phục mật khẩu.');
+                return;
+            }
+            setLoadingAuth(true);
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/auth/update-password`,
+                });
+                if (error) {
+                  if (error.status === 429) {
+                    setErrorMsg('Hệ thống đang quá tải, vui lòng thử lại sau.');
+                  } else {
+                    setErrorMsg(error.message || 'Có lỗi xảy ra. Vui lòng kiểm tra lại email.');
+                  }
+                  return;
+                }
+                setSuccessMsg('Link khôi phục đã được gửi! Vui lòng kiểm tra email của bạn.');
+            } catch (error: any) {
+                console.error('Reset password error:', error);
+                setErrorMsg('Có lỗi xảy ra. Vui lòng kiểm tra lại email.');
+            } finally {
+                setLoadingAuth(false);
+            }
+            return;
+        }
 
         if (isRegisterMode) {
             // Validate Registration
@@ -124,7 +153,11 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                 window.location.href = '/dashboard';
             } catch (error: any) {
                 console.error('Registration error:', error);
-                setErrorMsg(error.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+                if (error.status === 429) {
+                    setErrorMsg('Hệ thống đang quá tải, vui lòng thử lại sau.');
+                } else {
+                    setErrorMsg(error.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+                }
             } finally {
                 setLoadingAuth(false);
             }
@@ -163,7 +196,13 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                 window.location.href = '/dashboard';
             } catch (error: any) {
                 console.error('Login error:', error);
-                setErrorMsg(error.message === 'Tên đăng nhập không tồn tại.' ? error.message : 'Thông tin đăng nhập không chính xác.');
+                if (error.status === 429) {
+                    setErrorMsg('Hệ thống đang quá tải, vui lòng thử lại sau.');
+                } else if (error.message === 'Tên đăng nhập không tồn tại.') {
+                    setErrorMsg(error.message);
+                } else {
+                    setErrorMsg('Thông tin đăng nhập không chính xác.');
+                }
             } finally {
                 setLoadingAuth(false);
             }
@@ -184,6 +223,7 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
 
     const toggleMode = () => {
         setIsRegisterMode(!isRegisterMode);
+        setIsForgotPasswordMode(false);
         resetForm();
     };
 
@@ -252,6 +292,7 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
             document.body.style.overflow = 'hidden';
             resetForm(); // reset form when opening
             setIsRegisterMode(initialMode === 'register'); // Sync mode on open
+            setIsForgotPasswordMode(false);
         } else {
             document.body.style.overflow = 'unset';
         }
@@ -281,20 +322,19 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                     <i className="fa-solid fa-xmark"></i>
                 </button>
 
-                {/* Header */}
                 <div className="text-center mb-8">
                     <div className="inline-flex justify-center items-center w-12 h-12 rounded-xl bg-brand-accent/10 border border-brand-accent/30 mb-4 shadow-neon">
-                        <i className={`fa-solid ${isRegisterMode ? 'fa-user-plus' : 'fa-user'} text-brand-accent text-xl`}></i>
+                        <i className={`fa-solid ${isForgotPasswordMode ? 'fa-key' : isRegisterMode ? 'fa-user-plus' : 'fa-user'} text-brand-accent text-xl`}></i>
                     </div>
                     <h2 className="text-2xl font-display font-bold text-white tracking-wide">
-                        {isRegisterMode ? 'Đăng Ký Tài Khoản' : 'Đăng Nhập'}
+                        {isForgotPasswordMode ? 'Khôi Phục Mật Khẩu' : isRegisterMode ? 'Đăng Ký Tài Khoản' : 'Đăng Nhập'}
                     </h2>
                     <p className="text-sm text-gray-400 mt-2">
-                        {isRegisterMode ? 'Tham gia hệ sinh thái SpaceLike ngay hôm nay' : 'Truy cập vào hệ thống SMM Panel của bạn'}
+                        {isForgotPasswordMode ? 'Nhập email của bạn để nhận link khôi phục' : isRegisterMode ? 'Tham gia hệ sinh thái SpaceLike ngay hôm nay' : 'Truy cập vào hệ thống SMM Panel của bạn'}
                     </p>
                 </div>
 
-                {!isRegisterMode && (
+                {!isRegisterMode && !isForgotPasswordMode && (
                     <>
                         {/* Social Logins */}
                         <div className="space-y-3 mb-6">
@@ -395,18 +435,18 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
 
                     <div className="space-y-1.5">
                         <label className="text-sm font-medium text-gray-300">
-                            {!isRegisterMode ? 'Email hoặc Tên đăng nhập' : 'Email'}
+                            {isForgotPasswordMode ? 'Email' : !isRegisterMode ? 'Email hoặc Tên đăng nhập' : 'Email'}
                         </label>
                         <div className="relative text-white">
                             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                <i className={`fa-solid ${!isRegisterMode ? 'fa-user-tag' : 'fa-envelope'} text-gray-500`}></i>
+                                <i className={`fa-solid ${(!isRegisterMode && !isForgotPasswordMode) ? 'fa-user-tag' : 'fa-envelope'} text-gray-500`}></i>
                             </div>
                             <input
-                                type={!isRegisterMode ? "text" : "email"}
+                                type={(!isRegisterMode && !isForgotPasswordMode) ? "text" : "email"}
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className={`w-full bg-black/50 border ${isRegisterMode && emailStatus === 'taken' ? 'border-red-500/50' : isRegisterMode && emailStatus === 'available' ? 'border-emerald-500/50' : 'border-white/10'} rounded-xl pl-10 pr-10 py-3 text-sm focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600`}
-                                placeholder={!isRegisterMode ? "Email hoặc Username" : "name@example.com"}
+                                placeholder={(!isRegisterMode && !isForgotPasswordMode) ? "Email hoặc Username" : "name@example.com"}
                             />
                             {isRegisterMode && (
                                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -419,26 +459,28 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                         {isRegisterMode && emailStatus === 'taken' && <p className="text-[10px] text-red-500 ml-1 mt-1">Email này đã được đăng ký</p>}
                     </div>
 
-                    <div className="space-y-1.5">
-                        <div className="flex justify-between items-center">
-                            <label className="text-sm font-medium text-gray-300">Mật khẩu</label>
-                            {!isRegisterMode && (
-                                <a href="#" className="text-xs text-brand-accent hover:text-brand-accentHover transition-colors">Quên mật khẩu?</a>
-                            )}
-                        </div>
-                        <div className="relative text-white">
-                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                <i className="fa-solid fa-lock text-gray-500"></i>
+                    {!isForgotPasswordMode && (
+                        <div className="space-y-1.5">
+                            <div className="flex justify-between items-center">
+                                <label className="text-sm font-medium text-gray-300">Mật khẩu</label>
+                                {!isRegisterMode && (
+                                    <button type="button" onClick={(e) => { e.preventDefault(); setIsForgotPasswordMode(true); setIsRegisterMode(false); setErrorMsg(''); setSuccessMsg(''); setEmail(''); }} className="text-xs text-brand-accent hover:text-brand-accentHover transition-colors">Quên mật khẩu?</button>
+                                )}
                             </div>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600"
-                                placeholder="••••••••"
-                            />
+                            <div className="relative text-white">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <i className="fa-solid fa-lock text-gray-500"></i>
+                                </div>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all placeholder-gray-600"
+                                    placeholder="••••••••"
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {isRegisterMode && (
                         <div className="space-y-1.5">
@@ -466,8 +508,8 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                             <i className="fa-solid fa-circle-notch fa-spin"></i>
                         ) : (
                             <span className="flex items-center justify-center gap-2">
-                                {isRegisterMode ? 'Đăng Ký' : 'Đăng Nhập'}
-                                <i className={`fa-solid ${isRegisterMode ? 'fa-user-plus' : 'fa-arrow-right-to-bracket'} group-hover:translate-x-1 transition-transform`}></i>
+                                {isForgotPasswordMode ? 'Gửi Link Khôi Phục' : isRegisterMode ? 'Đăng Ký' : 'Đăng Nhập'}
+                                <i className={`fa-solid ${isForgotPasswordMode ? 'fa-paper-plane' : isRegisterMode ? 'fa-user-plus' : 'fa-arrow-right-to-bracket'} group-hover:translate-x-1 transition-transform`}></i>
                             </span>
                         )}
                     </button>
@@ -475,7 +517,11 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
 
                 {/* Footer Link */}
                 <div className="mt-8 text-center text-sm text-gray-400">
-                    {isRegisterMode ? (
+                    {isForgotPasswordMode ? (
+                        <button type="button" onClick={() => { setIsForgotPasswordMode(false); setIsRegisterMode(false); resetForm(); }} className="text-white font-semibold hover:text-brand-accent transition-colors">
+                            <i className="fa-solid fa-arrow-left mr-2"></i> Quay lại đăng nhập
+                        </button>
+                    ) : isRegisterMode ? (
                         <>Đã có tài khoản? <button onClick={toggleMode} className="text-white font-semibold hover:text-brand-accent transition-colors">Đăng nhập ngay</button></>
                     ) : (
                         <>Chưa có tài khoản? <button onClick={toggleMode} className="text-white font-semibold hover:text-brand-accent transition-colors">Đăng ký ngay</button></>
