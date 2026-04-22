@@ -55,7 +55,8 @@ export default function BlogAdminPage() {
     const [authorName, setAuthorName] = useState('Admin');
     const [category, setCategory] = useState('Tin tức');
     const [isFeatured, setIsFeatured] = useState(false);
-    const [isPublished, setIsPublished] = useState(false);
+    const [isPublished, setIsPublished] = useState(true);
+    const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
     const [metaTitle, setMetaTitle] = useState('');
     const [metaDescription, setMetaDescription] = useState('');
     const [focusKeyword, setFocusKeyword] = useState('');
@@ -94,7 +95,7 @@ export default function BlogAdminPage() {
 
     function resetForm() {
         setTitle(''); setExcerpt(''); setContent(''); setCoverImage('');
-        setAuthorName('Admin'); setCategory('Tin tức'); setIsFeatured(false); setIsPublished(false);
+        setAuthorName('Admin'); setCategory('Tin tức'); setIsFeatured(false); setIsPublished(true);
         setMetaTitle(''); setMetaDescription(''); setFocusKeyword('');
         setEditingPost(null); setShowSEO(false);
     }
@@ -468,6 +469,28 @@ export default function BlogAdminPage() {
                 </div>
             )}
 
+            {/* Filters */}
+            <div className="flex gap-2 p-1 bg-[var(--bg-glass-card)] rounded-xl border border-[var(--border-color)] w-fit">
+                <button 
+                    onClick={() => setFilter('all')}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${filter === 'all' ? 'bg-brand-accent text-white shadow-lg' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                >
+                    Tất cả ({posts.length})
+                </button>
+                <button 
+                    onClick={() => setFilter('published')}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${filter === 'published' ? 'bg-brand-accent text-white shadow-lg' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                >
+                    Công khai ({posts.filter(p => p.is_published).length})
+                </button>
+                <button 
+                    onClick={() => setFilter('draft')}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${filter === 'draft' ? 'bg-brand-accent text-white shadow-lg' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                >
+                    Bài nháp ({posts.filter(p => !p.is_published).length})
+                </button>
+            </div>
+
             {/* Posts Table */}
             <div className="rounded-2xl border border-[var(--border-color)] overflow-hidden" style={{ background: 'var(--bg-glass-card)' }}>
                 {loading ? (
@@ -492,7 +515,13 @@ export default function BlogAdminPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {posts.map(post => (
+                                {posts
+                                    .filter(p => {
+                                        if (filter === 'published') return p.is_published;
+                                        if (filter === 'draft') return !p.is_published;
+                                        return true;
+                                    })
+                                    .map(post => (
                                     <tr key={post.id} className="border-b border-[var(--border-color)] hover:bg-[var(--table-hover)] transition-colors">
                                         <td className="px-5 py-4">
                                             <div className="flex items-center gap-3">
