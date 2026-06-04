@@ -16,6 +16,9 @@ export const metadata: Metadata = {
     description: "Space Like - Hệ sinh thái mạng xã hội không giới hạn",
     images: ["/thumb-web.png"],
   },
+  verification: {
+    google: "5KvN9cq3RN3pxodLu7kq2L5V97nHbv4d_wBTBRQshos",
+  },
 };
 
 import { PreferencesProvider } from "@/contexts/PreferencesContext";
